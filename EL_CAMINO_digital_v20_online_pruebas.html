@@ -1,0 +1,505 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EL CAMINO · Juego familiar</title><style>
+:root{font-family:system-ui,Arial;color:#173a29;background:#f4f0e7}*{box-sizing:border-box}body{margin:0}header{background:#214c3a;color:white;padding:22px;text-align:center}h1{margin:0;font-size:2.3rem}header p{margin:5px}main{max-width:1150px;margin:auto;padding:15px}.panel{background:white;border:1px solid #d4d9cc;border-radius:14px;padding:16px;margin:12px 0}button,select,input{font:inherit;border:1px solid #a2b2a4;border-radius:8px;padding:9px;background:white;color:#173a29}button{cursor:pointer}button.primary{background:#214c3a;color:white}button:disabled{opacity:.45;cursor:default}.flex{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.board{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));aspect-ratio:1;gap:2px;background:#41624b;padding:3px;border-radius:9px}.tile{background:#f4f2e7;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;font-size:clamp(5px,1vw,11px);padding:2px;overflow:hidden}.tile:nth-child(even){background:#dce8dc}.tile strong{font-size:clamp(7px,1.1vw,13px)}.center{grid-column:2/11;grid-row:2/11;background:#214c3a;color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8px}.center h2{font-size:clamp(20px,5vw,56px);margin:10px}.token{font-size:clamp(9px,1.8vw,19px)}.option{display:block;width:100%;margin:8px 0;text-align:left}.correct{background:#c9e8c9}.wrong{background:#f8d0cc}.muted{color:#53685a}.status{padding:12px;background:#eaf1e7;border-radius:8px}.hide{display:none}@media(max-width:600px){.tile{font-size:5px}.tile strong{font-size:7px}.panel{padding:10px}}@media print{.controls{display:none}header{padding:8px}}
+
+
+/* Edición visual: exclusivamente estilos; lógica del juego intacta */
+:root{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#213b32;background:#f5f1e7}
+body{background:radial-gradient(circle at 10% 0%,#eee4cc 0,transparent 35%),#f5f1e7;line-height:1.5}
+header{background:linear-gradient(135deg,#173e33,#2c6651 75%,#49745d);padding:32px 18px 30px;border-bottom:5px solid #c9a968;box-shadow:0 8px 25px #203b3024}
+header h1{font-family:Georgia,'Times New Roman',serif;letter-spacing:.12em;font-size:clamp(2.4rem,7vw,4rem);font-weight:700;text-shadow:0 2px 2px #102a2240}
+header p{color:#efe5c7;font-size:.95rem;letter-spacing:.06em}
+main{max-width:1180px;padding:clamp(12px,2vw,24px)}
+.panel{background:#fffdf8;border:1px solid #e0d7c3;border-radius:20px;padding:clamp(15px,2.4vw,26px);margin:16px 0;box-shadow:0 5px 22px #1c3b2c0c}
+.panel h2{font-family:Georgia,serif;color:#204b3d;margin:0 0 16px;font-size:1.5rem}
+button,select,input{border:1px solid #c6d1c5;border-radius:12px;padding:12px 15px;background:#fffefa;color:#1c4436;min-height:45px}
+button{font-weight:650;transition:background .15s,transform .15s,box-shadow .15s}
+button:not(:disabled):active{transform:scale(.98)}
+button:not(:disabled):hover{background:#edf4eb;box-shadow:0 3px 10px #204b3d12}
+button.primary{background:linear-gradient(145deg,#215843,#174431);color:#fff;border-color:#1b4b39;box-shadow:0 3px 8px #173d2c20}
+button.primary:not(:disabled):hover{background:#286a50}
+button:focus-visible,select:focus-visible{outline:3px solid #c7a55c;outline-offset:2px}
+.flex{gap:12px}.controls label{display:inline-flex;align-items:center;gap:8px;font-weight:600}
+.board{background:#294f40;border:7px solid #294f40;outline:3px solid #c5a56a;outline-offset:-2px;gap:3px;border-radius:16px;box-shadow:0 10px 25px #16382925;aspect-ratio:1}
+.tile{background:#fffaf0;border-radius:3px;gap:2px;color:#244739;font-size:clamp(6px,.95vw,12px);padding:3px}
+.tile:nth-child(even){background:#e7eddf}.tile strong{color:#96733c;font-size:clamp(8px,1.1vw,14px)}
+.tile span:nth-child(2){font-weight:650;line-height:1.15;overflow-wrap:anywhere}
+.tile:nth-child(5n){background:#f3e2b8}.tile:nth-child(10n){background:#e7d7cf}
+.center{background:radial-gradient(circle at 50% 35%,#376c55,#1b4737 70%);border:2px solid #c6a869;border-radius:5px;box-shadow:inset 0 0 0 8px #ffffff10;gap:12px}
+.center h2{color:#fff1cb;font-family:Georgia,serif;font-size:clamp(21px,5.2vw,64px);letter-spacing:.08em;margin:0}
+.center p{color:#f5ebd6;font-size:clamp(9px,1.6vw,20px);margin:0;letter-spacing:.035em}
+.status{background:#eef4eb;border-left:4px solid #bc9a57;border-radius:10px;color:#244638;font-weight:550;padding:15px}
+#players{line-height:1.9;color:#526d5b;font-weight:600}#die{font-size:1.2rem;color:#204b3d}
+#quiz{background:#faf6eb;border:1px solid #e7dcc5;border-radius:16px;padding:clamp(14px,2vw,22px);margin:16px 0}
+#question{font-family:Georgia,serif;font-size:clamp(1.15rem,2.2vw,1.55rem);color:#183f30}
+.option{border:1px solid #d4dccf;background:#fff;padding:14px 16px;border-radius:12px;font-weight:550;line-height:1.45}
+.option.correct{background:#d6eddb;border-color:#5b9b70;color:#194b2a}.option.wrong{background:#f9dcd6;border-color:#c97969;color:#763d35}
+.muted{color:#607166}
+@media(max-width:600px){header{padding:24px 12px}.panel{padding:14px;border-radius:16px}.board{gap:1px;border-width:4px;border-radius:10px}.tile{font-size:clamp(4.6px,1.3vw,7px);padding:1px}.tile strong{font-size:clamp(6px,1.8vw,9px)}.tile span:nth-child(2){font-size:inherit}.token{font-size:clamp(8px,2.2vw,13px)}.center{gap:7px}.center h2{font-size:clamp(19px,5vw,32px)}.center p{font-size:clamp(8px,2vw,13px)}.flex button{flex-grow:1}.controls label{flex-wrap:wrap}}
+@media print{header{box-shadow:none}.panel{box-shadow:none}.board{box-shadow:none}}
+
+
+.backup-tools{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}.backup-tools button{flex:1;min-width:190px}.backup-help{font-size:.84rem;margin:7px 0 0}.name-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:14px 0}
+.name-fields label{display:flex;flex-direction:column;align-items:stretch;gap:5px;font-size:.88rem}
+.name-fields input{width:100%;min-width:0;box-sizing:border-box}
+@media(max-width:600px){.name-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.history-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.history-list{margin:12px 0 0;padding-left:23px;max-height:260px;overflow:auto}.history-list li{padding:8px 3px;border-bottom:1px solid rgba(120,130,120,.2);line-height:1.4}.history-list li:last-child{border:0}.history-empty{margin:12px 0;color:var(--muted,#68776c)}
+
+/* v6: opciones de lectura, sin alterar la mecánica */
+.reading-tools{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:12px 0 4px}
+.reading-tools button[aria-pressed="true"]{background:#214c3a;color:#fff;border-color:#214c3a}
+body.large-reading #question{font-size:clamp(1.55rem,5vw,2.15rem);line-height:1.45}
+body.large-reading .option{font-size:1.2rem;line-height:1.45;padding:17px}
+body.large-reading #notice,body.large-reading #reference,body.large-reading #turn{font-size:1.2rem;line-height:1.55}
+body.large-reading .history-list{font-size:1.12rem;line-height:1.65}
+body.high-contrast{background:#fff;color:#10251b}
+body.high-contrast .panel{background:#fff;border:2px solid #203f31}
+body.high-contrast .muted{color:#263f30}
+body.high-contrast .status{background:#e1f1e3;color:#112b1c}
+body.high-contrast .option{border:2px solid #254a36}
+body.high-contrast .tile{color:#11291b}
+@media(max-width:600px){.reading-tools button{flex:1 1 130px}}
+
+/* v8: visualización compacta, no cambia las reglas ni el estado de la partida */
+.board-tools{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.board-tools button{background:#e7efe5;border:1px solid #9bb6a1}
+body.high-contrast .board-tools button{background:#fff;border:2px solid #264635}
+/* v7: panel de situación, exclusivamente informativo */
+.player-dashboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:14px 0}
+.player-card{background:#f5f5ed;border:1px solid #d6dccf;border-radius:13px;padding:12px;min-width:0}
+.player-card.current{background:#e8f3e8;border:2px solid #357657;box-shadow:0 0 0 2px #d9e8d7}
+.player-card .player-title{font-weight:750;display:flex;align-items:center;gap:7px;overflow-wrap:anywhere}
+.player-card .player-meta{font-size:.87rem;color:#3b5c48;margin:5px 0 8px}
+.player-card .progress-track{height:9px;background:#d9e1d5;border-radius:20px;overflow:hidden}
+.player-card .progress-fill{height:100%;background:#39755a;border-radius:20px}
+.player-card .player-badges{font-size:.78rem;margin-top:8px;color:#4b604f;line-height:1.5}
+body.large-reading .player-card .player-meta,body.large-reading .player-card .player-badges{font-size:1rem}
+body.high-contrast .player-card{background:#fff;border:2px solid #264635}
+@media(max-width:600px){.player-dashboard{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* v9: modo partida: solo presentación, sin cambios en el motor */
+.focus-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 14px;padding:12px 16px;border-radius:14px;background:#edf4e9;border:1px solid #a9c2ad}
+.focus-toolbar button{min-height:44px}
+body.focus-play #setupPanel,body.focus-play #readingPanel{display:none}
+body.high-contrast .focus-toolbar{background:#fff;border:2px solid #264635}
+
+/* v10: guía rápida desplegable; no modifica las reglas ni el motor */
+.quick-help details{border:1px solid rgba(140,140,140,.28);border-radius:12px;overflow:hidden}
+.quick-help summary{cursor:pointer;font-weight:700;padding:14px 16px;list-style-position:inside;touch-action:manipulation}
+.quick-help summary:focus-visible{outline:3px solid #e5b755;outline-offset:-3px}
+.quick-help-content{padding:0 16px 12px;line-height:1.65}
+.quick-help-content p{margin:12px 0}
+/* v11: animación del dado y control de sonido; no altera reglas ni guardado */
+.dice-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+#soundToggle{min-height:44px}
+#die.dice-rolling{display:inline-block;animation:diceShake .12s ease-in-out infinite alternate;transform-origin:center;font-variant-numeric:tabular-nums}
+@keyframes diceShake{from{transform:rotate(-12deg) scale(1.04)}to{transform:rotate(12deg) scale(1.1)}}
+@media(prefers-reduced-motion:reduce){#die.dice-rolling{animation:none}}
+
+/* v15: casillas ampliadas en pantallas pequeñas. Solo presentación. */
+@media (max-width: 700px) {
+  #boardWrap { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; padding: 5px 3px 14px; }
+  #board { width: 704px; min-width: 704px; max-width: none; aspect-ratio: 1; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 3px; }
+  #board .tile { font-size: 10px; padding: 3px 2px; overflow-wrap: anywhere; line-height: 1.12; }
+  #board .tile strong { font-size: 14px; line-height: 1.15; }
+  #board .token { font-size: 15px; }
+  #board .center h2 { font-size: 36px; }
+  #board .center p { font-size: 15px; }
+}
+
+/* v16: presentación superpuesta, sin cambiar las reglas ni el resultado del dado */
+#boardPanel{position:relative}
+#board .tile.tile-target{background:#ffe4a0!important;outline:3px solid #e5a82f;outline-offset:-3px;box-shadow:inset 0 0 0 2px #fff;z-index:1}
+#gameOverlay{position:fixed;inset:0;z-index:9999;background:rgba(9,27,21,.79);display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+#gameOverlay.hide{display:none}
+#gameOverlay .overlay-card{width:min(95vw,560px);max-height:calc(100dvh - 32px);overflow:auto;background:#fffdf6;border:4px solid #d7b16b;border-radius:24px;padding:22px;box-shadow:0 22px 70px #0009;text-align:center}
+#gameOverlay .overlay-die{width:154px;height:154px;margin:18px auto;border-radius:26px;background:linear-gradient(145deg,#fff,#e8e8e8);box-shadow:inset -9px -12px 18px #c7c7c7,0 16px 28px #0006;border:3px solid #c9c9c9;display:grid;place-items:center;font-size:112px;line-height:1;transform-origin:center}
+#gameOverlay .overlay-die.rolling{animation:bigDiceRoll .19s linear infinite alternate}
+@keyframes bigDiceRoll{from{transform:translate(-15px,-18px) rotate(-19deg) scale(.92)}to{transform:translate(16px,12px) rotate(20deg) scale(1.05)}}
+#gameOverlay .overlay-caption{font-weight:750;color:#234d39;font-size:1.3rem}
+#gameOverlay #quiz{display:block!important;text-align:left;margin:0}
+#gameOverlay #question{font-size:clamp(1.3rem,4.8vw,1.9rem);line-height:1.35}
+#gameOverlay #answers button{font-size:1.1rem;padding:14px 12px;border:2px solid #c4d1c2;border-radius:12px}
+#gameOverlay #qn{font-weight:700;color:#345f4a}
+#overlayResultStage .result-message{font-size:1.2rem;line-height:1.45;margin:14px 0;color:#234d39}
+#overlayResultStage .result-answer{background:#f0f5ec;border-radius:12px;padding:12px;margin:12px 0;font-weight:650}
+#overlayNextTurn{width:100%;min-height:60px;font-size:1.25rem;margin-top:12px}
+#overlayResultStage .result-icon{font-size:3.4rem}
+@media(prefers-reduced-motion:reduce){#gameOverlay .overlay-die.rolling{animation:none}}
+
+/* v18: cárcel visible en esquina superior derecha del área interior del tablero */
+#board .center{position:relative}
+#board .jail-box{position:absolute;top:12px;right:12px;width:145px;min-height:108px;border:3px solid #e4bf7a;border-radius:14px;background:linear-gradient(140deg,#342e30,#5d4543);color:#fff9e9;padding:8px;box-shadow:0 5px 15px #0006;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;z-index:2}
+#board .jail-box strong{font-size:18px;line-height:1.1;color:#fff1c5}
+#board .jail-box .jail-bars{font-size:29px;line-height:1.1}
+#board .jail-box .jail-occupants{font-size:12px;font-weight:700;line-height:1.15;overflow-wrap:anywhere;max-width:100%}
+#board .jail-box small{font-size:10px;line-height:1.15;color:#f6e4cb}
+#board .jail-box.occupied{border-color:#ffdc76;box-shadow:0 0 0 3px #f4ce5c66,0 5px 15px #0007}
+@media(max-width:600px){#board .jail-box{top:10px;right:10px}}
+
+/* v19: acceso principal al dado desde el centro del tablero */
+#board .center .board-roll-btn{display:flex;align-items:center;justify-content:center;gap:10px;min-width:245px;min-height:72px;padding:12px 22px;margin:12px auto 0;background:linear-gradient(160deg,#f7d78a,#d7a94d);border:3px solid #fff3cb;border-radius:18px;color:#173a29;font-size:24px;font-weight:850;box-shadow:0 8px 18px #071b1466;cursor:pointer;position:relative;z-index:1;touch-action:manipulation}
+#board .center .board-roll-btn:disabled{opacity:.52;filter:grayscale(.5);cursor:not-allowed}
+#board .center .board-roll-btn:focus-visible{outline:4px solid #fff;outline-offset:3px}
+#board .center .board-roll-btn .dice-emoji{font-size:36px}
+#board .center .board-turn-label{font-size:17px;max-width:340px;font-weight:700;margin:8px auto 0;color:#fff4cc;overflow-wrap:anywhere}
+@media(max-width:600px){#board .center .board-roll-btn{min-width:225px;min-height:68px;font-size:22px}}
+
+/* v20 online */
+.online-panel{border:2px solid #c5a56a;background:#fff9e8}.online-actions{display:flex;gap:9px;flex-wrap:wrap}.online-actions>*{flex:1 1 160px}.online-info{padding:12px;background:#eef5e8;border-radius:10px;margin:10px 0}.online-info:empty{display:none}.online-panel input{max-width:100%;width:100%}.online-panel label{display:block;font-weight:700;margin:10px 0 4px}.online-panel .online-status{font-size:.9rem;color:#345944}.online-panel .online-status.error{color:#a32d2d}.online-panel .room-code{font-size:1.45rem;font-weight:900;letter-spacing:.13em}.online-panel .hide{display:none!important}.online-lock{opacity:.5;pointer-events:none}
+</style></head><body><header><h1>EL CAMINO</h1><p>Juego bíblico familiar · Edición digital · Vista adaptable</p></header><main><div class="focus-toolbar" role="group" aria-label="Vista del juego"><strong>Vista de juego</strong><button type="button" id="focusToggle" onclick="toggleFocus()" aria-pressed="false" aria-controls="setupPanel readingPanel">Activar modo partida</button></div><section class="panel online-panel" id="onlinePanel"><h2>🌐 Jugar online · 2 a 6 jugadores</h2><p>Un móvil por jugador. Para jugar online es necesario abrir este juego desde una web HTTPS (no desde un archivo descargado).</p><div id="onlineEntry"><label for="onlineName">Tu nombre</label><input id="onlineName" maxlength="24" placeholder="Escribe tu nombre"><label for="onlineMax">Plazas de la sala</label><select id="onlineMax"><option value="2">2 jugadores</option><option value="3">3 jugadores</option><option value="4">4 jugadores</option><option value="5">5 jugadores</option><option value="6" selected>6 jugadores</option></select><div class="online-actions" style="margin-top:12px"><button class="primary" type="button" id="onlineCreate">Crear sala</button></div><label for="onlineCode">O entra con un código de sala</label><input id="onlineCode" maxlength="12" autocapitalize="characters" placeholder="Código de 10 caracteres"><button type="button" id="onlineJoin" style="margin-top:8px;width:100%">Unirme a la partida</button></div><div id="onlineRoom" class="hide"><div class="online-info"><div>Sala: <span id="onlineRoomCode" class="room-code"></span></div><div id="onlineMembers"></div><div id="onlineTurnInfo"></div></div><div class="online-actions"><button id="onlineShare" type="button">📋 Copiar invitación</button><button id="onlineBegin" class="primary hide" type="button">Iniciar partida online</button><button id="onlineExit" type="button">Salir del modo online</button></div></div><p id="onlineStatus" class="online-status" role="status">Modo familiar disponible sin conexión.</p><p class="muted" style="font-size:.83rem">Versión de pruebas. Usa nombres de pila, no datos privados. Las reglas de Firebase deben instalarse antes de jugar.</p></section><section class="panel controls" id="setupPanel"><h2>Preparar partida</h2><div class="flex"><label>Jugadores <select id="count"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label><label>Preguntas <select id="difficulty"><option value="Todas">Todas</option><option value="Fácil">Fáciles</option><option value="Difícil">Difíciles</option></select></label><button class="primary" onclick="start()">Nueva partida</button><button onclick="resetConfirm()">Reiniciar</button></div><div class="backup-tools"><button type="button" onclick="exportGame()">⬇ Guardar copia de la partida</button><button type="button" onclick="$('backupInput').click()">⬆ Restaurar copia</button><input type="file" id="backupInput" accept=".json,application/json" style="display:none" onchange="importGame(this)"></div><p class="muted backup-help">La copia permite recuperar una partida en otro móvil o navegador. Se guarda como archivo JSON.</p><div id="nameFields" class="name-fields" aria-label="Nombres de los jugadores"></div><p class="muted">Regla: acertar para avanzar lo indicado por el dado. Casillas 5, 15, 25, 35: Bendiciones; 10, 20, 30, 40: Obstáculos. Una vuelta y pregunta final para ganar. Cárcel: al acumular 2 respuestas falladas, el jugador pierde su próximo turno y después vuelve a jugar con el contador a cero.</p></section><section class="panel controls" id="readingPanel" aria-label="Opciones de lectura"><h2>Comodidad de lectura</h2><div class="reading-tools"><button type="button" id="largeReading" aria-pressed="false" onclick="toggleReading('large')">Aumentar letra</button><button type="button" id="contrastReading" aria-pressed="false" onclick="toggleReading('contrast')">Alto contraste</button></div><p class="muted">Estas preferencias se guardan en este dispositivo. No afectan a la partida.</p></section><section class="panel" id="boardPanel"><div class="board-tools"><strong>Tablero de la partida</strong><button type="button" id="boardToggle" onclick="toggleBoard()" aria-expanded="true" aria-controls="boardWrap">Ocultar tablero</button></div><div id="boardWrap"><div class="board" id="board"></div></div><p class="muted" id="boardScrollHelp" style="font-size:.86rem;margin:8px 0 0">📱 En el móvil, desliza el tablero hacia los lados para ver las casillas ampliadas.</p><p id="boardHiddenNotice" class="muted hide">Tablero oculto para dar más espacio a las preguntas. Puedes mostrarlo cuando quieras.</p></section><section class="panel controls"><h2 id="turn">Inicia una partida</h2><div id="players"></div><div id="playerDashboard" class="player-dashboard" aria-label="Situación de cada jugador"></div><p id="notice" class="status">Configura el número de jugadores y pulsa Nueva partida.</p><div class="flex"><button id="roll" class="primary" onclick="roll()" disabled>Tirar dado</button><strong id="die" aria-live="polite"></strong></div><div class="dice-tools"><button type="button" id="soundToggle" onclick="toggleDiceSound()" aria-pressed="true">🔊 Sonidos del juego: activados</button><button type="button" id="vibrationToggle" onclick="toggleVibration()" aria-pressed="false">📳 Vibración: desactivada</button><button type="button" onclick="playGameCue('wrong')" aria-label="Escuchar sonido de respuesta incorrecta">🔉 Probar sonido de fallo</button><span class="muted">Dado, respuestas y casillas especiales · sin Internet</span></div><div id="quizHome"><div id="quiz" class="hide"><p id="qn" class="muted"></p><h3 id="question"></h3><div id="answers"></div><p id="reference" class="muted"></p></div></div><button id="continue" class="hide primary" onclick="nextTurn()">Siguiente turno</button></section><section class="panel quick-help" aria-label="Ayuda y reglas de EL CAMINO"><details id="quickRules"><summary>📖 Cómo jugar · Guía rápida</summary><div class="quick-help-content"><p><strong>1. Prepara la partida.</strong> Elige de 2 a 6 participantes, escribe sus nombres y pulsa «Nueva partida».</p><p><strong>2. En tu turno.</strong> Pulsa «Tirar dado» y responde una de las tres opciones. Si aciertas, avanzas el número indicado; si fallas, permaneces donde estás.</p><p><strong>3. Casillas especiales.</strong> Las casillas 5, 15, 25 y 35 conceden una Bendición. Las casillas 10, 20, 30 y 40 provocan un Obstáculo. Sus efectos se muestran durante la partida.</p><p><strong>4. Cárcel.</strong> Cada dos respuestas incorrectas, el jugador va a la cárcel de la esquina superior derecha del tablero. No pierde su posición; se salta un turno y vuelve a jugar. El contador se reinicia al entrar en la cárcel.</p><p><strong>5. Para ganar.</strong> Completa una vuelta y, en tu siguiente turno, acierta la pregunta final.</p><p><strong>6. Guarda tu progreso.</strong> El juego guarda la partida automáticamente en este navegador. Desde «Mostrar configuración» puedes descargar una copia de seguridad y restaurarla en otro dispositivo.</p><p class="muted">«Modo Partida» oculta los controles de preparación; «Ocultar tablero» deja más espacio para leer. Ambas opciones son reversibles.</p></div></details></section><section class="panel" aria-label="Historial de la partida"><div class="history-head"><h2>📜 Historial de la partida</h2><button type="button" id="historyToggle" onclick="toggleHistory()" aria-expanded="true">Ocultar historial</button></div><p class="muted">Consulta las últimas jugadas. Se conserva con la partida y en sus copias de seguridad.</p><div id="historyBody"><ol id="historyList" class="history-list"></ol><p id="historyEmpty" class="history-empty">El historial aparecerá al comenzar a jugar.</p></div></section><section class="panel"><strong>Nota editorial:</strong> edición de juego independiente, no oficial. Banco de preguntas en revisión editorial. La partida se guarda localmente en este navegador.</section></main><div id="gameOverlay" class="hide" role="dialog" aria-modal="true" aria-label="Jugada en el tablero"><div class="overlay-card"><div id="overlayDiceStage" class="hide"><div class="overlay-caption" id="overlayPlayer"></div><div id="overlayDie" class="overlay-die" aria-live="polite">⚀</div><div id="overlayDiceText" class="overlay-caption">Lanzando dado…</div></div><div id="overlayQuestionStage" class="hide"><div class="overlay-caption" id="overlayQuestionPlayer"></div><div id="overlayQuizSlot"></div></div><div id="overlayResultStage" class="hide" aria-live="polite"><div id="overlayResultIcon" class="result-icon"></div><div id="overlayResultMessage" class="result-message"></div><div id="overlayResultAnswer" class="result-answer"></div><button type="button" id="overlayNextTurn" class="primary" onclick="nextTurn()">Siguiente turno</button></div></div></div><script>
+const BOOKS=["Génesis", "Éxodo", "Levítico", "Números", "Deuteronomio", "Josué", "Jueces", "Rut", "1 Samuel", "2 Samuel", "1 Reyes", "2 Reyes", "1 Crónicas", "2 Crónicas", "Esdras", "Nehemías", "Ester", "Job", "Salmos", "Proverbios", "Eclesiastés", "Isaías", "Jeremías", "Ezequiel", "Daniel", "Oseas", "Joel", "Amós", "Jonás", "Miqueas", "Mateo", "Marcos", "Lucas", "Juan", "Hechos", "Romanos", "1 Corintios", "Efesios", "Hebreos", "Revelación"],QUESTIONS=[{"n": 1, "level": "Fácil", "q": "¿Quién derrotó al gigante Goliat?", "opts": ["Saúl", "David", "Jonatán"], "ans": "B", "ref": "1 Samuel 17:49, 50"}, {"n": 2, "level": "Fácil", "q": "¿A qué profeta arrojaron a un foso de leones?", "opts": ["Daniel", "Jeremías", "Ezequiel"], "ans": "A", "ref": "Daniel 6:16"}, {"n": 3, "level": "Fácil", "q": "¿Quién construyó el arca antes del Diluvio?", "opts": ["Moisés", "Noé", "Abrahán"], "ans": "B", "ref": "Génesis 6:13, 14"}, {"n": 4, "level": "Fácil", "q": "¿Quién interpretó los sueños del faraón sobre las vacas y las espigas?", "opts": ["José", "Daniel", "Samuel"], "ans": "A", "ref": "Génesis 41:14-32"}, {"n": 5, "level": "Fácil", "q": "¿Qué mar atravesaron los israelitas después de salir de Egipto?", "opts": ["Mar Muerto", "Mar Rojo", "Mar de Galilea"], "ans": "B", "ref": "Éxodo 14:21, 22"}, {"n": 6, "level": "Fácil", "q": "¿Cuál dijo Jesús que era el segundo mandamiento más importante?", "opts": ["Amar al prójimo como a uno mismo", "No trabajar en sábado", "Dar ofrendas"], "ans": "A", "ref": "Mateo 22:37-39"}, {"n": 7, "level": "Difícil", "q": "¿Cómo se llamaba el padre de Barac?", "opts": ["Abinóam", "Quis", "Elcaná"], "ans": "A", "ref": "Jueces 4:6"}, {"n": 8, "level": "Difícil", "q": "¿Cómo se llamaba el esposo de Jael?", "opts": ["Heber", "Barac", "Sísara"], "ans": "A", "ref": "Jueces 4:17"}, {"n": 9, "level": "Difícil", "q": "¿Cómo se llamaba el hermano mayor de David?", "opts": ["Abinadab", "Eliab", "Samá"], "ans": "B", "ref": "1 Samuel 16:6; 17:13"}, {"n": 10, "level": "Difícil", "q": "¿Qué juez israelita era zurdo?", "opts": ["Gedeón", "Ehúd", "Sansón"], "ans": "B", "ref": "Jueces 3:15"}, {"n": 11, "level": "Difícil", "q": "¿Cómo se llamaba la madre del rey Lemuel?", "opts": ["No se indica su nombre", "Huldá", "Abigaíl"], "ans": "A", "ref": "Proverbios 31:1"}, {"n": 12, "level": "Difícil", "q": "¿Cómo se llamaba el esposo de la profetisa Huldá?", "opts": ["Salum", "Hilquías", "Jeremías"], "ans": "A", "ref": "2 Reyes 22:14"}, {"n": 13, "level": "Difícil", "q": "¿Qué juez liberó a Israel de Cusán-risataim?", "opts": ["Otniel", "Jefté", "Tola"], "ans": "A", "ref": "Jueces 3:9, 10"}, {"n": 14, "level": "Difícil", "q": "¿Qué nombre tenía Bernabé antes de que los apóstoles le dieran ese sobrenombre?", "opts": ["José", "Juan", "Simón"], "ans": "A", "ref": "Hechos 4:36"}, {"n": 15, "level": "Difícil", "q": "¿Cuántos carros de guerra con hoces de hierro tenía Sísara?", "opts": ["300", "600", "900"], "ans": "C", "ref": "Jueces 4:3"}, {"n": 16, "level": "Difícil", "q": "¿Durante cuántos días desafió Goliat a los israelitas?", "opts": ["20", "40", "70"], "ans": "B", "ref": "1 Samuel 17:16"}, {"n": 17, "level": "Difícil", "q": "¿Cuántas piedras lisas escogió David antes de enfrentarse a Goliat?", "opts": ["Tres", "Cinco", "Siete"], "ans": "B", "ref": "1 Samuel 17:40"}, {"n": 18, "level": "Difícil", "q": "Según Santiago 3:17, ¿qué cualidad se menciona primero de la sabiduría de arriba?", "opts": ["Es pura", "Es razonable", "Es pacífica"], "ans": "A", "ref": "Santiago 3:17"}, {"n": 19, "level": "Difícil", "q": "¿En qué libro de la Biblia aparecen las palabras de Agur?", "opts": ["Job", "Proverbios", "Eclesiastés"], "ans": "B", "ref": "Proverbios 30:1"}, {"n": 20, "level": "Difícil", "q": "¿Cómo se llamaba el joven que cayó de una ventana mientras Pablo hablaba?", "opts": ["Eutico", "Trófimo", "Timoteo"], "ans": "A", "ref": "Hechos 20:9"}, {"n": 21, "level": "Fácil", "q": "¿Qué joven judía llegó a ser reina de Persia?", "opts": ["Rut", "Ester", "Débora"], "ans": "B", "ref": "Ester 2:17"}, {"n": 22, "level": "Fácil", "q": "¿Quién fue la madre del profeta Samuel?", "opts": ["Ana", "Raquel", "Miriam"], "ans": "A", "ref": "1 Samuel 1:20"}, {"n": 23, "level": "Fácil", "q": "¿Cuántas veces negó Pedro conocer a Jesús?", "opts": ["Dos", "Cuatro", "Tres"], "ans": "C", "ref": "Mateo 26:34, 75"}, {"n": 24, "level": "Fácil", "q": "¿A quién acompañó Rut cuando decidió quedarse con ella?", "opts": ["Noemí", "Sara", "Abigail"], "ans": "A", "ref": "Rut 1:16"}, {"n": 25, "level": "Fácil", "q": "¿Qué ciudad vio derrumbarse sus murallas después de que Israel marchara alrededor de ella?", "opts": ["Hai", "Jericó", "Hebrón"], "ans": "B", "ref": "Josué 6:20"}, {"n": 26, "level": "Fácil", "q": "¿Qué dijo Jesús que debían hacer sus discípulos con sus enemigos?", "opts": ["Evitarlos siempre", "Odiarlos", "Amarlos"], "ans": "C", "ref": "Mateo 5:44"}, {"n": 27, "level": "Difícil", "q": "¿Cómo se llamaba el padre de la profetisa Ana mencionada por Lucas?", "opts": ["Fanuel", "Simeón", "Zacarías"], "ans": "A", "ref": "Lucas 2:36"}, {"n": 28, "level": "Difícil", "q": "¿A qué tribu pertenecía la profetisa Ana?", "opts": ["Judá", "Aser", "Leví"], "ans": "B", "ref": "Lucas 2:36"}, {"n": 29, "level": "Difícil", "q": "¿En el campo de qué hombre recogió espigas Rut al llegar a Belén?", "opts": ["Boaz", "Elimélec", "Mahlón"], "ans": "A", "ref": "Rut 2:1-3"}, {"n": 30, "level": "Difícil", "q": "¿Cómo se llamaba el padre de Bezalel, artesano del tabernáculo?", "opts": ["Aarón", "Hur", "Urí"], "ans": "C", "ref": "Éxodo 31:2"}, {"n": 31, "level": "Difícil", "q": "¿Qué artesano colaboró con Bezalel en la construcción del tabernáculo?", "opts": ["Oholiab", "Coré", "Eleazar"], "ans": "A", "ref": "Éxodo 31:6"}, {"n": 32, "level": "Difícil", "q": "¿A qué tribu pertenecía Oholiab?", "opts": ["Rubén", "Dan", "Judá"], "ans": "B", "ref": "Éxodo 31:6"}, {"n": 33, "level": "Difícil", "q": "¿Qué rey de Judá enfermó de lepra después de intentar quemar incienso en el templo?", "opts": ["Josías", "Ezequías", "Uzías"], "ans": "C", "ref": "2 Crónicas 26:16-21"}, {"n": 34, "level": "Difícil", "q": "¿De qué ciudad era Simón, a quien obligaron a llevar el madero de Jesús?", "opts": ["Cirene", "Betania", "Nazaret"], "ans": "A", "ref": "Marcos 15:21"}, {"n": 35, "level": "Difícil", "q": "¿Cómo se llamaban los hijos de Simón de Cirene mencionados en Marcos?", "opts": ["Santiago y Juan", "Alejandro y Rufo", "José y Judas"], "ans": "B", "ref": "Marcos 15:21"}, {"n": 36, "level": "Difícil", "q": "¿Qué edad tenía Josías cuando comenzó a reinar?", "opts": ["Doce años", "Dieciséis años", "Ocho años"], "ans": "C", "ref": "2 Reyes 22:1"}, {"n": 37, "level": "Difícil", "q": "¿Cuántos años reinó Josías en Jerusalén?", "opts": ["31", "40", "55"], "ans": "A", "ref": "2 Reyes 22:1"}, {"n": 38, "level": "Difícil", "q": "¿Qué profeta hizo flotar la cabeza de un hacha prestada?", "opts": ["Elías", "Eliseo", "Isaías"], "ans": "B", "ref": "2 Reyes 6:5-7"}, {"n": 39, "level": "Difícil", "q": "Según Santiago 1:19, ¿qué debemos estar dispuestos a hacer rápidamente?", "opts": ["Hablar", "Enojarnos", "Escuchar"], "ans": "C", "ref": "Santiago 1:19"}, {"n": 40, "level": "Difícil", "q": "¿Qué cristiana fue recomendada por Pablo en su carta a los Romanos?", "opts": ["Febe", "Lidia", "Priscila"], "ans": "A", "ref": "Romanos 16:1, 2"}, {"n": 41, "level": "Fácil", "q": "¿Qué profeta fue tragado por un pez enorme?", "opts": ["Jonás", "Elías", "Amós"], "ans": "A", "ref": "Jonás 1:17"}, {"n": 42, "level": "Fácil", "q": "¿Cómo se llamaba la esposa de Abrahán?", "opts": ["Rebeca", "Sara", "Raquel"], "ans": "B", "ref": "Génesis 17:15"}, {"n": 43, "level": "Fácil", "q": "¿Qué apóstol caminó sobre el agua hacia Jesús?", "opts": ["Juan", "Tomás", "Pedro"], "ans": "C", "ref": "Mateo 14:28, 29"}, {"n": 44, "level": "Fácil", "q": "¿Cómo se llamaba la madre de Jesús?", "opts": ["María", "Marta", "Elisabet"], "ans": "A", "ref": "Lucas 1:30, 31"}, {"n": 45, "level": "Fácil", "q": "¿En qué localidad nació Jesús?", "opts": ["Nazaret", "Belén", "Jericó"], "ans": "B", "ref": "Mateo 2:1"}, {"n": 46, "level": "Fácil", "q": "Según Mateo 6:33, ¿qué debemos seguir buscando primero?", "opts": ["La fama", "Las riquezas", "El Reino"], "ans": "C", "ref": "Mateo 6:33"}, {"n": 47, "level": "Difícil", "q": "¿Cómo se llamaba el padre del profeta Jeremías?", "opts": ["Hilquías", "Baruc", "Safán"], "ans": "A", "ref": "Jeremías 1:1"}, {"n": 48, "level": "Difícil", "q": "¿De qué ciudad sacerdotal era Jeremías?", "opts": ["Betel", "Anatot", "Siló"], "ans": "B", "ref": "Jeremías 1:1"}, {"n": 49, "level": "Difícil", "q": "¿Cómo se llamaba la esposa del profeta Oseas?", "opts": ["Rut", "Débora", "Gómer"], "ans": "C", "ref": "Oseas 1:3"}, {"n": 50, "level": "Difícil", "q": "¿Cómo se llamaba el padre de Gómer?", "opts": ["Diblaim", "Beor", "Helquíah"], "ans": "A", "ref": "Oseas 1:3"}, {"n": 51, "level": "Difícil", "q": "¿Cómo se llamaba el padre del profeta Sofonías?", "opts": ["Amós", "Cusí", "Imer"], "ans": "B", "ref": "Sofonías 1:1"}, {"n": 52, "level": "Difícil", "q": "¿Qué profeta envió un mensaje escrito al rey Jehoram de Judá?", "opts": ["Isaías", "Eliseo", "Elías"], "ans": "C", "ref": "2 Crónicas 21:12"}, {"n": 53, "level": "Difícil", "q": "¿Cómo se llamaba la madre de Timoteo?", "opts": ["Eunice", "Loida", "Priscila"], "ans": "A", "ref": "2 Timoteo 1:5"}, {"n": 54, "level": "Difícil", "q": "¿Cómo se llamaba la abuela de Timoteo?", "opts": ["Eunice", "Loida", "Lidia"], "ans": "B", "ref": "2 Timoteo 1:5"}, {"n": 55, "level": "Difícil", "q": "¿Cuántos años tenía José cuando cuidaba rebaños con sus hermanos?", "opts": ["15", "20", "17"], "ans": "C", "ref": "Génesis 37:2"}, {"n": 56, "level": "Difícil", "q": "¿Cuántos años tenía José cuando se presentó ante el faraón?", "opts": ["30", "25", "40"], "ans": "A", "ref": "Génesis 41:46"}, {"n": 57, "level": "Difícil", "q": "¿Cuánto tiempo estuvo Jonás dentro del pez?", "opts": ["Dos días", "Tres días y tres noches", "Siete días"], "ans": "B", "ref": "Jonás 1:17"}, {"n": 58, "level": "Difícil", "q": "Según Proverbios 15:1, ¿qué clase de respuesta calma la furia?", "opts": ["Una respuesta rápida", "Una respuesta severa", "Una respuesta apacible"], "ans": "C", "ref": "Proverbios 15:1"}, {"n": 59, "level": "Difícil", "q": "¿Qué profeta tuvo una visión de un valle lleno de huesos secos?", "opts": ["Ezequiel", "Daniel", "Zacarías"], "ans": "A", "ref": "Ezequiel 37:1-4"}, {"n": 60, "level": "Difícil", "q": "¿Qué dos cristianas animó Pablo a tener la misma mente en el Señor?", "opts": ["Priscila y Febe", "Evodia y Síntique", "María y Marta"], "ans": "B", "ref": "Filipenses 4:2"}, {"n": 61, "level": "Fácil", "q": "¿Con cuántos hombres derrotó Gedeón a los madianitas?", "opts": ["300", "3.000", "30.000"], "ans": "A", "ref": "Jueces 7:7"}, {"n": 62, "level": "Fácil", "q": "¿Quién fue el primer rey de Israel?", "opts": ["David", "Saúl", "Salomón"], "ans": "B", "ref": "1 Samuel 10:1, 24"}, {"n": 63, "level": "Fácil", "q": "¿Qué rey pidió a Jehová un corazón obediente para juzgar al pueblo?", "opts": ["Salomón", "Roboam", "Acab"], "ans": "A", "ref": "1 Reyes 3:9-12"}, {"n": 64, "level": "Fácil", "q": "¿Qué apóstol resucitó a Tabita, también llamada Dorcas?", "opts": ["Juan", "Pablo", "Pedro"], "ans": "C", "ref": "Hechos 9:36-41"}, {"n": 65, "level": "Fácil", "q": "¿Qué juez derribó las columnas de un edificio filisteo?", "opts": ["Sansón", "Gedeón", "Jefté"], "ans": "A", "ref": "Jueces 16:29, 30"}, {"n": 66, "level": "Fácil", "q": "¿Cuál de estas cualidades es parte del fruto del espíritu?", "opts": ["Orgullo", "Autocontrol", "Envidia"], "ans": "B", "ref": "Gálatas 5:22, 23"}, {"n": 67, "level": "Difícil", "q": "¿Cómo se llamaba el padre de Gedeón?", "opts": ["Joás", "Abinoam", "Manóah"], "ans": "A", "ref": "Jueces 6:11"}, {"n": 68, "level": "Difícil", "q": "¿Cuántos hijos tenía Jaír, juez de Israel, que montaban treinta burros?", "opts": ["20", "30", "40"], "ans": "B", "ref": "Jueces 10:3, 4"}, {"n": 69, "level": "Difícil", "q": "¿Cuántos hijos y nietos tenía Abdón, juez de Israel?", "opts": ["30 hijos y 40 nietos", "40 hijos y 30 nietos", "50 hijos y 20 nietos"], "ans": "B", "ref": "Jueces 12:13, 14"}, {"n": 70, "level": "Difícil", "q": "¿Cómo se llamaba el padre de Sansón?", "opts": ["Elcaná", "Joás", "Manóah"], "ans": "C", "ref": "Jueces 13:2, 24"}, {"n": 71, "level": "Difícil", "q": "¿Qué profeta utilizó una parábola para reprender a David por su pecado?", "opts": ["Natán", "Gad", "Samuel"], "ans": "A", "ref": "2 Samuel 12:1-7"}, {"n": 72, "level": "Difícil", "q": "¿Quién era el padre del rey Acab?", "opts": ["Jeroboán", "Omrí", "Baasa"], "ans": "B", "ref": "1 Reyes 16:28, 29"}, {"n": 73, "level": "Difícil", "q": "¿Cómo se llamaba el secretario que escribió las palabras dictadas por Jeremías?", "opts": ["Baruc", "Ebed-mélec", "Pasjur"], "ans": "A", "ref": "Jeremías 36:4"}, {"n": 74, "level": "Difícil", "q": "¿En casa de quién se hospedaron Pablo y Silas en Tesalónica?", "opts": ["Ticio Justo", "Jasón", "Crispo"], "ans": "B", "ref": "Hechos 17:5-7"}, {"n": 75, "level": "Difícil", "q": "¿Durante cuántos años juzgó Jefté a Israel?", "opts": ["Seis", "Siete", "Diez"], "ans": "A", "ref": "Jueces 12:7"}, {"n": 76, "level": "Difícil", "q": "¿Cuánto tiempo reinó David en Hebrón sobre Judá?", "opts": ["Cinco años", "Siete años y seis meses", "Doce años"], "ans": "B", "ref": "2 Samuel 2:11"}, {"n": 77, "level": "Difícil", "q": "¿Cuántos hombres zurdos de Benjamín podían lanzar piedras con la honda sin fallar?", "opts": ["300", "600", "700"], "ans": "C", "ref": "Jueces 20:16"}, {"n": 78, "level": "Difícil", "q": "¿Qué se utiliza como comparación para explicar que una persona puede mejorar a otra?", "opts": ["El hierro afila el hierro", "El agua limpia la piedra", "La plata refina el oro"], "ans": "A", "ref": "Proverbios 27:17"}, {"n": 79, "level": "Difícil", "q": "¿Qué dos hombres mencionó Pablo como ejemplos de quienes habían naufragado respecto a su fe?", "opts": ["Himeneo y Alejandro", "Demas y Lucas", "Silas y Timoteo"], "ans": "A", "ref": "1 Timoteo 1:19, 20"}, {"n": 80, "level": "Difícil", "q": "¿Qué joven acompañó a Pablo y Bernabé al comienzo de su viaje misionero?", "opts": ["Juan, también llamado Marcos", "Tito", "Apolos"], "ans": "A", "ref": "Hechos 13:5"}, {"n": 81, "level": "Fácil", "q": "¿Qué profetisa también ejercía de jueza en Israel?", "opts": ["Débora", "Míriam", "Huldá"], "ans": "A", "ref": "Jueces 4:4"}, {"n": 82, "level": "Fácil", "q": "¿Quién era la esposa de Isaac?", "opts": ["Raquel", "Rebeca", "Lea"], "ans": "B", "ref": "Génesis 24:67"}, {"n": 83, "level": "Fácil", "q": "¿En qué se convirtió la esposa de Lot al mirar atrás?", "opts": ["En una columna de sal", "En piedra", "En arena"], "ans": "A", "ref": "Génesis 19:26"}, {"n": 84, "level": "Fácil", "q": "¿Quién se sentó a los pies de Jesús para escucharlo mientras su hermana estaba ocupada?", "opts": ["Marta", "María", "Juana"], "ans": "B", "ref": "Lucas 10:39, 40"}, {"n": 85, "level": "Fácil", "q": "¿En qué monte desafió Elías a los profetas de Baal?", "opts": ["Sinaí", "Carmelo", "Nebo"], "ans": "B", "ref": "1 Reyes 18:19, 20"}, {"n": 86, "level": "Fácil", "q": "Según Efesios 4:32, ¿cómo debemos tratarnos unos a otros?", "opts": ["Con bondad y perdonándonos", "Con rivalidad", "Con indiferencia"], "ans": "A", "ref": "Efesios 4:32"}, {"n": 87, "level": "Difícil", "q": "¿Cómo se llamaba el esposo de la profetisa Débora?", "opts": ["Barac", "Lapidot", "Heber"], "ans": "B", "ref": "Jueces 4:4"}, {"n": 88, "level": "Difícil", "q": "¿Qué nombre recibe la madre de Abías en 2 Crónicas 11:20?", "opts": ["Maacá", "Atalía", "Jezabel"], "ans": "A", "ref": "2 Crónicas 11:20"}, {"n": 89, "level": "Difícil", "q": "¿Qué mujer escondió a Joás cuando Atalía intentó eliminar a los descendientes reales?", "opts": ["Jehoseba", "Huldá", "Abigaíl"], "ans": "A", "ref": "2 Reyes 11:1-3"}, {"n": 90, "level": "Difícil", "q": "¿Quién era la esposa de Áquila, colaborador de Pablo?", "opts": ["Lidia", "Priscila", "Febe"], "ans": "B", "ref": "Hechos 18:2"}, {"n": 91, "level": "Difícil", "q": "¿De qué ciudad era Lidia, vendedora de púrpura?", "opts": ["Éfeso", "Tiatira", "Corinto"], "ans": "B", "ref": "Hechos 16:14"}, {"n": 92, "level": "Difícil", "q": "¿A qué colaborador dejó Pablo enfermo en Mileto?", "opts": ["Trófimo", "Tíquico", "Tito"], "ans": "A", "ref": "2 Timoteo 4:20"}, {"n": 93, "level": "Difícil", "q": "¿Qué colaborador se esforzaba por los cristianos de Colosas, Laodicea y Hierápolis?", "opts": ["Epafras", "Demas", "Crescente"], "ans": "A", "ref": "Colosenses 4:12, 13"}, {"n": 94, "level": "Difícil", "q": "¿De qué localidad procedía el profeta Amós?", "opts": ["Anatot", "Tecoa", "Betel"], "ans": "B", "ref": "Amós 1:1"}, {"n": 95, "level": "Difícil", "q": "¿Cuántos días llevaba Ester sin ser llamada ante el rey cuando habló con Mardoqueo?", "opts": ["Diez", "Treinta", "Cuarenta"], "ans": "B", "ref": "Ester 4:11"}, {"n": 96, "level": "Difícil", "q": "¿Cuántas veces tuvo que sumergirse Naamán en el Jordán para quedar limpio?", "opts": ["Tres", "Siete", "Doce"], "ans": "B", "ref": "2 Reyes 5:10, 14"}, {"n": 97, "level": "Difícil", "q": "¿Qué objeto utilizó Jael para acabar con Sísara?", "opts": ["Una espada", "Una estaca de tienda", "Una honda"], "ans": "B", "ref": "Jueces 4:21"}, {"n": 98, "level": "Difícil", "q": "Según Miqueas 6:8, ¿qué debemos amar?", "opts": ["La riqueza", "La lealtad", "La fama"], "ans": "B", "ref": "Miqueas 6:8"}, {"n": 99, "level": "Difícil", "q": "Según Habacuc 2:4, ¿por qué vivirá el justo?", "opts": ["Por su fidelidad", "Por sus riquezas", "Por su fuerza"], "ans": "A", "ref": "Habacuc 2:4"}, {"n": 100, "level": "Difícil", "q": "¿Qué colaborador de Pablo debía ser recibido con alegría y honor por los filipenses?", "opts": ["Epafrodito", "Onésimo", "Apolos"], "ans": "A", "ref": "Filipenses 2:25, 29"}, {"n": 101, "level": "Fácil", "q": "¿Qué apóstol era recaudador de impuestos antes de seguir a Jesús?", "opts": ["Pedro", "Mateo", "Andrés"], "ans": "B", "ref": "Mateo 9:9"}, {"n": 102, "level": "Fácil", "q": "¿Quién fue elegido para ocupar el lugar de Judas Iscariote entre los apóstoles?", "opts": ["Matías", "Bernabé", "Silas"], "ans": "A", "ref": "Hechos 1:23-26"}, {"n": 103, "level": "Fácil", "q": "¿Qué hombre se subió a un sicómoro para ver a Jesús?", "opts": ["Nicodemo", "Bartimeo", "Zaqueo"], "ans": "C", "ref": "Lucas 19:1-4"}, {"n": 104, "level": "Fácil", "q": "¿Quién fue el primer mártir cristiano mencionado en el libro de Hechos?", "opts": ["Felipe", "Esteban", "Santiago"], "ans": "B", "ref": "Hechos 7:54-60"}, {"n": 105, "level": "Fácil", "q": "¿Cuántos apóstoles escogió Jesús?", "opts": ["Doce", "Diez", "Setenta"], "ans": "A", "ref": "Lucas 6:13"}, {"n": 106, "level": "Fácil", "q": "En la parábola del buen samaritano, ¿quién ayudó al hombre herido?", "opts": ["Un sacerdote", "Un levita", "Un samaritano"], "ans": "C", "ref": "Lucas 10:30-35"}, {"n": 107, "level": "Difícil", "q": "¿Cómo se llamaba el padre de Judas Iscariote?", "opts": ["Simón", "Zebedeo", "Alfeo"], "ans": "A", "ref": "Juan 6:71"}, {"n": 108, "level": "Difícil", "q": "¿Qué apóstol era hijo de Alfeo?", "opts": ["Santiago", "Juan", "Andrés"], "ans": "A", "ref": "Mateo 10:3"}, {"n": 109, "level": "Difícil", "q": "¿Qué hombre instruyó con más exactitud a Apolos junto con su esposa?", "opts": ["Aquila", "Silas", "Timoteo"], "ans": "A", "ref": "Hechos 18:24-26"}, {"n": 110, "level": "Difícil", "q": "¿Qué centurión romano recibió una visión y mandó llamar a Pedro?", "opts": ["Julio", "Cornelio", "Claudio Lisias"], "ans": "B", "ref": "Hechos 10:1-6"}, {"n": 111, "level": "Difícil", "q": "¿Cómo se llamaba el gobernador que escuchó a Pablo junto con Drusila?", "opts": ["Festo", "Galión", "Félix"], "ans": "C", "ref": "Hechos 24:24"}, {"n": 112, "level": "Difícil", "q": "¿Qué profeta predijo que Pablo sería atado en Jerusalén?", "opts": ["Ágabo", "Silas", "Judas Barsabás"], "ans": "A", "ref": "Hechos 21:10, 11"}, {"n": 113, "level": "Difícil", "q": "¿Qué discípulo de Damasco recibió instrucciones para visitar a Saulo después de su conversión?", "opts": ["Bernabé", "Ananías", "Felipe"], "ans": "B", "ref": "Hechos 9:10-17"}, {"n": 114, "level": "Difícil", "q": "¿Qué rey escuchó la defensa de Pablo y dijo que en poco tiempo lo persuadiría para hacerse cristiano?", "opts": ["Herodes Antipas", "Arquelao", "Agripa"], "ans": "C", "ref": "Hechos 26:27, 28"}, {"n": 115, "level": "Difícil", "q": "¿En qué isla naufragó Pablo cuando viajaba hacia Roma?", "opts": ["Malta", "Creta", "Chipre"], "ans": "A", "ref": "Hechos 28:1"}, {"n": 116, "level": "Difícil", "q": "¿Cuántas personas viajaban en el barco que naufragó con Pablo?", "opts": ["276", "176", "376"], "ans": "A", "ref": "Hechos 27:37"}, {"n": 117, "level": "Difícil", "q": "¿Durante cuántos días permaneció Pablo ciego después de encontrarse con Jesús en el camino a Damasco?", "opts": ["Siete", "Tres", "Cinco"], "ans": "B", "ref": "Hechos 9:8, 9"}, {"n": 118, "level": "Difícil", "q": "En la parábola de las diez vírgenes, ¿cuántas eran prudentes?", "opts": ["Tres", "Siete", "Cinco"], "ans": "C", "ref": "Mateo 25:1, 2"}, {"n": 119, "level": "Difícil", "q": "¿En qué evangelio se encuentra la parábola del hijo pródigo?", "opts": ["Lucas", "Mateo", "Marcos"], "ans": "A", "ref": "Lucas 15:11-32"}, {"n": 120, "level": "Difícil", "q": "¿En qué carta Pablo menciona la armadura espiritual completa de Dios?", "opts": ["Colosenses", "Efesios", "Filipenses"], "ans": "B", "ref": "Efesios 6:11-17"}, {"n": 121, "level": "Fácil", "q": "¿Quién fue el padre de Isaac?", "opts": ["Jacob", "Abrahán", "José"], "ans": "B", "ref": "Génesis 21:2, 3"}, {"n": 122, "level": "Fácil", "q": "¿Cómo se llamaba el hermano gemelo de Jacob?", "opts": ["Esaú", "Ismael", "Rubén"], "ans": "A", "ref": "Génesis 25:24-26"}, {"n": 123, "level": "Fácil", "q": "¿Quién fue el hijo menor de Jacob?", "opts": ["José", "Judá", "Benjamín"], "ans": "C", "ref": "Génesis 35:18, 24"}, {"n": 124, "level": "Fácil", "q": "¿Qué mujer fue la madre de José y Benjamín?", "opts": ["Raquel", "Lea", "Bilhá"], "ans": "A", "ref": "Génesis 35:24"}, {"n": 125, "level": "Fácil", "q": "¿Cuántos hijos tuvo Jacob que dieron origen a las tribus de Israel?", "opts": ["Diez", "Doce", "Catorce"], "ans": "B", "ref": "Génesis 35:22-26"}, {"n": 126, "level": "Fácil", "q": "Según Proverbios 3:5, ¿en quién debemos confiar con todo el corazón?", "opts": ["En nosotros mismos", "En los gobernantes", "En Jehová"], "ans": "C", "ref": "Proverbios 3:5"}, {"n": 127, "level": "Difícil", "q": "¿Cómo se llamaba la madre de Ismael?", "opts": ["Agar", "Queturá", "Sara"], "ans": "A", "ref": "Génesis 16:15"}, {"n": 128, "level": "Difícil", "q": "¿Qué hizo Abigail para evitar que David se vengara de Nabal?", "opts": ["Reunió un ejército", "Llevó provisiones y habló con sensatez", "Pidió ayuda a Saúl"], "ans": "B", "ref": "1 Samuel 25:18-35"}, {"n": 129, "level": "Difícil", "q": "¿Qué parábola utilizó Jesús para enseñar la importancia de perdonar de corazón?", "opts": ["El esclavo que no quiso perdonar", "El sembrador", "Las diez vírgenes"], "ans": "A", "ref": "Mateo 18:23-35"}, {"n": 130, "level": "Difícil", "q": "¿Qué decisión tomó Moisés cuando era adulto?", "opts": ["Aceptó ser el próximo faraón", "Se marchó para hacerse comerciante", "Rechazó ser llamado hijo de la hija del faraón"], "ans": "C", "ref": "Hebreos 11:24, 25"}, {"n": 131, "level": "Difícil", "q": "¿Qué cualidad demostró Rut al acompañar a Noemí y adorar a su Dios?", "opts": ["Lealtad", "Ambición", "Desconfianza"], "ans": "A", "ref": "Rut 1:16, 17"}, {"n": 132, "level": "Difícil", "q": "¿Qué hijo de Judá y Tamar fue antepasado del rey David?", "opts": ["Er", "Pérez", "Onán"], "ans": "B", "ref": "Génesis 38:29; Rut 4:18-22"}, {"n": 133, "level": "Difícil", "q": "¿Cómo reaccionó Josías al escuchar las palabras del libro de la Ley?", "opts": ["Ordenó destruirlo", "Se rasgó la ropa", "Mandó castigar al sacerdote"], "ans": "B", "ref": "2 Reyes 22:10, 11"}, {"n": 134, "level": "Difícil", "q": "¿Qué destacó Jesús al comparar la contribución de una viuda pobre con las de personas ricas?", "opts": ["Solo debían contribuir los ricos", "Las monedas pequeñas no valían", "La generosidad no depende solo de la cantidad"], "ans": "C", "ref": "Marcos 12:41-44"}, {"n": 135, "level": "Difícil", "q": "¿Cuántos años tenía Abrahán cuando nació Isaac?", "opts": ["90", "99", "100"], "ans": "C", "ref": "Génesis 21:5"}, {"n": 136, "level": "Difícil", "q": "¿Cuántos años tenía Sara cuando nació Isaac?", "opts": ["90", "80", "100"], "ans": "A", "ref": "Génesis 17:17; 21:5"}, {"n": 137, "level": "Difícil", "q": "¿Cuántos años duró el período de residencia mencionado en Éxodo 12:40, 41?", "opts": ["400", "430", "480"], "ans": "B", "ref": "Éxodo 12:40, 41"}, {"n": 138, "level": "Difícil", "q": "¿Qué profeta anunció que el gobernante de Israel saldría de Belén Efrata?", "opts": ["Isaías", "Jeremías", "Miqueas"], "ans": "C", "ref": "Miqueas 5:2"}, {"n": 139, "level": "Difícil", "q": "¿Qué profeta predijo que el Mesías sería llamado «Príncipe de Paz»?", "opts": ["Isaías", "Daniel", "Zacarías"], "ans": "A", "ref": "Isaías 9:6"}, {"n": 140, "level": "Difícil", "q": "¿En qué libro se menciona por primera vez a Melquisedec?", "opts": ["Hebreos", "Génesis", "Salmos"], "ans": "B", "ref": "Génesis 14:18"}, {"n": 141, "level": "Fácil", "q": "¿A qué amigo resucitó Jesús después de cuatro días muerto?", "opts": ["Lázaro", "Jairo", "Esteban"], "ans": "A", "ref": "Juan 11:39-44"}, {"n": 142, "level": "Fácil", "q": "¿Qué hermana de Lázaro salió a recibir a Jesús?", "opts": ["María", "Marta", "Salomé"], "ans": "B", "ref": "Juan 11:20"}, {"n": 143, "level": "Fácil", "q": "¿Qué apóstol dudó inicialmente de la resurrección de Jesús?", "opts": ["Felipe", "Andrés", "Tomás"], "ans": "C", "ref": "Juan 20:24-29"}, {"n": 144, "level": "Fácil", "q": "¿Quién bautizó a Jesús en el río Jordán?", "opts": ["Juan el Bautista", "Pedro", "Santiago"], "ans": "A", "ref": "Mateo 3:13-17"}, {"n": 145, "level": "Fácil", "q": "¿Con cuántos panes alimentó Jesús a unos 5.000 hombres?", "opts": ["Siete", "Cinco", "Doce"], "ans": "B", "ref": "Mateo 14:17-21"}, {"n": 146, "level": "Fácil", "q": "Según Juan 13:35, ¿qué identificaría a los discípulos de Jesús?", "opts": ["Sus riquezas", "Su conocimiento de idiomas", "El amor entre ellos"], "ans": "C", "ref": "Juan 13:35"}, {"n": 147, "level": "Difícil", "q": "¿Cómo se llamaba el padre de Juan el Bautista?", "opts": ["Zacarías", "Simeón", "José"], "ans": "A", "ref": "Lucas 1:13"}, {"n": 148, "level": "Difícil", "q": "¿De qué división sacerdotal era Zacarías?", "opts": ["Jehoiarib", "Abías", "Jedaya"], "ans": "B", "ref": "Lucas 1:5"}, {"n": 149, "level": "Difícil", "q": "¿Cómo se llamaba el siervo al que Pedro le cortó una oreja?", "opts": ["Barsabás", "Elimas", "Malco"], "ans": "C", "ref": "Juan 18:10"}, {"n": 150, "level": "Difícil", "q": "¿Quién pidió a Pilato el cuerpo de Jesús para enterrarlo?", "opts": ["José de Arimatea", "Nicodemo", "Simón de Cirene"], "ans": "A", "ref": "Mateo 27:57, 58"}, {"n": 151, "level": "Difícil", "q": "¿Qué miembro del Sanedrín visitó a Jesús de noche?", "opts": ["Gamaliel", "Nicodemo", "José de Arimatea"], "ans": "B", "ref": "Juan 3:1, 2"}, {"n": 152, "level": "Difícil", "q": "¿Qué procónsul de Chipre escuchó a Pablo y Bernabé?", "opts": ["Galión", "Félix", "Sergio Paulo"], "ans": "C", "ref": "Hechos 13:6-12"}, {"n": 153, "level": "Difícil", "q": "¿Qué falso profeta, también llamado Elimas, se opuso a Pablo?", "opts": ["Bar-Jesús", "Simón", "Alejandro"], "ans": "A", "ref": "Hechos 13:6-8"}, {"n": 154, "level": "Difícil", "q": "¿Qué colaborador de Pablo era médico?", "opts": ["Tíquico", "Lucas", "Epafras"], "ans": "B", "ref": "Colosenses 4:14"}, {"n": 155, "level": "Difícil", "q": "¿Cuántas tinajas se mencionan en el milagro del agua convertida en vino?", "opts": ["Cuatro", "Siete", "Seis"], "ans": "C", "ref": "Juan 2:6"}, {"n": 156, "level": "Difícil", "q": "¿Cuántas cestas de sobras recogieron después de alimentar a unos 4.000 hombres?", "opts": ["Siete", "Doce", "Cinco"], "ans": "A", "ref": "Mateo 15:37, 38"}, {"n": 157, "level": "Difícil", "q": "¿Qué profeta anunció que el Mesías entraría en Jerusalén sobre un burro?", "opts": ["Malaquías", "Zacarías", "Oseas"], "ans": "B", "ref": "Zacarías 9:9; Mateo 21:4, 5"}, {"n": 158, "level": "Difícil", "q": "Según Daniel 9:25, ¿cuántas semanas transcurrirían hasta el Mesías el Líder?", "opts": ["Setenta", "Sesenta y dos", "Siete más sesenta y dos"], "ans": "C", "ref": "Daniel 9:25"}, {"n": 159, "level": "Difícil", "q": "¿En qué carta se compara la palabra de Dios con una espada de dos filos?", "opts": ["Hebreos", "Santiago", "1 Pedro"], "ans": "A", "ref": "Hebreos 4:12"}, {"n": 160, "level": "Difícil", "q": "¿En qué carta se afirma que la fe sin obras está muerta?", "opts": ["1 Juan", "Santiago", "Judas"], "ans": "B", "ref": "Santiago 2:26"}, {"n": 161, "level": "Fácil", "q": "¿Qué profeta fue llevado al cielo en una tempestad de viento?", "opts": ["Eliseo", "Elías", "Isaías"], "ans": "B", "ref": "2 Reyes 2:11"}, {"n": 162, "level": "Fácil", "q": "¿Qué rey de Israel construyó un templo para adorar a Jehová en Jerusalén?", "opts": ["Salomón", "Saúl", "Acab"], "ans": "A", "ref": "1 Reyes 6:1, 14"}, {"n": 163, "level": "Fácil", "q": "¿Qué profeta interpretó la escritura que apareció en la pared durante el banquete de Belsasar?", "opts": ["Ezequiel", "Jeremías", "Daniel"], "ans": "C", "ref": "Daniel 5:13-28"}, {"n": 164, "level": "Fácil", "q": "¿Quién fue el sucesor de Elías como profeta?", "opts": ["Eliseo", "Amós", "Oseas"], "ans": "A", "ref": "1 Reyes 19:16, 19-21"}, {"n": 165, "level": "Fácil", "q": "¿Qué rey de Babilonia conquistó Jerusalén y destruyó el templo de Salomón?", "opts": ["Ciro", "Nabucodonosor", "Darío"], "ans": "B", "ref": "2 Reyes 25:1-10"}, {"n": 166, "level": "Fácil", "q": "Según Eclesiastés 4:9, ¿qué es mejor que estar solo?", "opts": ["Tener muchas riquezas", "Tener autoridad", "Ser dos"], "ans": "C", "ref": "Eclesiastés 4:9"}, {"n": 167, "level": "Difícil", "q": "¿A qué rey de Judá anunció Isaías que viviría 15 años más?", "opts": ["Ezequías", "Manasés", "Acaz"], "ans": "A", "ref": "2 Reyes 20:1-6"}, {"n": 168, "level": "Difícil", "q": "¿Qué rey de Judá fue el padre de Ezequías?", "opts": ["Jotán", "Acaz", "Uzías"], "ans": "B", "ref": "2 Reyes 16:20"}, {"n": 169, "level": "Difícil", "q": "¿Cómo se llamaba el sacerdote que encontró el libro de la Ley durante el reinado de Josías?", "opts": ["Sadoc", "Abiatar", "Hilquías"], "ans": "C", "ref": "2 Reyes 22:8"}, {"n": 170, "level": "Difícil", "q": "¿Qué profeta aconsejó al rey Asa cuando regresaba de una victoria?", "opts": ["Azarías, hijo de Oded", "Hanani", "Miqueas"], "ans": "A", "ref": "2 Crónicas 15:1, 2"}, {"n": 171, "level": "Difícil", "q": "¿Quién reprendió al rey Asa por confiar en el rey de Siria?", "opts": ["Jehú", "Hanani", "Eliezer"], "ans": "B", "ref": "2 Crónicas 16:7"}, {"n": 172, "level": "Difícil", "q": "¿Qué rey de Israel recibió el anuncio de que su dinastía terminaría por sus pecados?", "opts": ["Omrí", "Zimrí", "Jeroboán, hijo de Nebat"], "ans": "C", "ref": "1 Reyes 14:7-11"}, {"n": 173, "level": "Difícil", "q": "¿Qué profeta anunció a Jeroboán que su hijo moriría cuando su esposa regresara a la ciudad?", "opts": ["Ahíya", "Eliseo", "Gad"], "ans": "A", "ref": "1 Reyes 14:1-12"}, {"n": 174, "level": "Difícil", "q": "¿Qué funcionario del rey Acab escondió a cien profetas de Jehová en cuevas?", "opts": ["Sebná", "Abdías", "Eliaquim"], "ans": "B", "ref": "1 Reyes 18:3, 4"}, {"n": 175, "level": "Difícil", "q": "¿Cuántos profetas de Jehová escondió Abdías en cada una de las dos cuevas?", "opts": ["Cuarenta", "Sesenta", "Cincuenta"], "ans": "C", "ref": "1 Reyes 18:4"}, {"n": 176, "level": "Difícil", "q": "¿Cuántos años reinó Manasés en Jerusalén?", "opts": ["55", "45", "52"], "ans": "A", "ref": "2 Reyes 21:1"}, {"n": 177, "level": "Difícil", "q": "¿Qué profeta vio un rollo volador en una visión?", "opts": ["Ezequiel", "Zacarías", "Daniel"], "ans": "B", "ref": "Zacarías 5:1, 2"}, {"n": 178, "level": "Difícil", "q": "¿Qué profeta vio cuatro carros que salían de entre dos montañas de cobre?", "opts": ["Habacuc", "Nahúm", "Zacarías"], "ans": "C", "ref": "Zacarías 6:1"}, {"n": 179, "level": "Difícil", "q": "¿Qué profeta anunció que Jehová haría un nuevo pacto con la casa de Israel y la casa de Judá?", "opts": ["Jeremías", "Isaías", "Joel"], "ans": "A", "ref": "Jeremías 31:31"}, {"n": 180, "level": "Difícil", "q": "¿Cómo se llamaba el padre de Agur, mencionado en Proverbios 30?", "opts": ["Jaqué", "Lemuel", "Ucal"], "ans": "A", "ref": "Proverbios 30:1"}, {"n": 181, "level": "Fácil", "q": "¿Quién fue el primer hombre creado por Jehová?", "opts": ["Noé", "Adán", "Abel"], "ans": "B", "ref": "Génesis 2:7"}, {"n": 182, "level": "Fácil", "q": "¿Cómo se llamaba la esposa de Adán?", "opts": ["Eva", "Sara", "Rebeca"], "ans": "A", "ref": "Génesis 3:20"}, {"n": 183, "level": "Fácil", "q": "¿Qué mujer escondió a los dos espías israelitas enviados a Jericó?", "opts": ["Débora", "Rahab", "Míriam"], "ans": "B", "ref": "Josué 2:1-6"}, {"n": 184, "level": "Fácil", "q": "¿Quién dirigió a Israel después de la muerte de Moisés?", "opts": ["Josué", "Caleb", "Aarón"], "ans": "A", "ref": "Josué 1:1, 2"}, {"n": 185, "level": "Fácil", "q": "¿Qué alimento proporcionó Jehová a Israel en el desierto?", "opts": ["Higos", "Maná", "Uvas"], "ans": "B", "ref": "Éxodo 16:14, 15"}, {"n": 186, "level": "Fácil", "q": "Según Mateo 6:9, ¿cómo comienza la oración modelo de Jesús?", "opts": ["Jehová de los ejércitos", "Dios de Abrahán", "Padre nuestro que estás en los cielos"], "ans": "C", "ref": "Mateo 6:9"}, {"n": 187, "level": "Difícil", "q": "¿Cómo se llamaba la hija del faraón que se casó con Méred, según 1 Crónicas?", "opts": ["Bitías", "Asenat", "Séfora"], "ans": "A", "ref": "1 Crónicas 4:18"}, {"n": 188, "level": "Difícil", "q": "¿Qué hijo de Aarón fue el padre de Finehás?", "opts": ["Itamar", "Eleazar", "Nadab"], "ans": "B", "ref": "Éxodo 6:25"}, {"n": 189, "level": "Difícil", "q": "¿Qué hombre pidió a Jehová que ampliara su territorio?", "opts": ["Otoniel", "Hur", "Jabez"], "ans": "C", "ref": "1 Crónicas 4:9, 10"}, {"n": 190, "level": "Difícil", "q": "¿Cómo se llamaba el padre de Samuel?", "opts": ["Elcaná", "Elí", "Abinadab"], "ans": "A", "ref": "1 Samuel 1:1, 19, 20"}, {"n": 191, "level": "Difícil", "q": "¿Cómo se llamaba el discípulo también conocido como Justo que fue propuesto junto con Matías?", "opts": ["José Barsabás", "Silas", "Esteban"], "ans": "A", "ref": "Hechos 1:23"}, {"n": 192, "level": "Difícil", "q": "¿Quién fue el padre de Mefibóset, nieto de Saúl?", "opts": ["Is-bóset", "Abner", "Jonatán"], "ans": "C", "ref": "2 Samuel 4:4"}, {"n": 193, "level": "Difícil", "q": "¿Qué profeta envió a uno de los hijos de los profetas a ungir a Jehú?", "opts": ["Eliseo", "Elías", "Isaías"], "ans": "A", "ref": "2 Reyes 9:1-6"}, {"n": 194, "level": "Difícil", "q": "¿Qué rey de Judá no fue enterrado en las sepulturas de los reyes?", "opts": ["Josafat", "Jehoram", "Ezequías"], "ans": "B", "ref": "2 Crónicas 21:19, 20"}, {"n": 195, "level": "Difícil", "q": "¿Cuántos años tenía Noé cuando comenzó el Diluvio?", "opts": ["500", "550", "600"], "ans": "C", "ref": "Génesis 7:6"}, {"n": 196, "level": "Difícil", "q": "¿Cuántos días y noches llovió durante el Diluvio?", "opts": ["40", "70", "150"], "ans": "A", "ref": "Génesis 7:12"}, {"n": 197, "level": "Difícil", "q": "¿Qué profeta predijo que Jehová derramaría su espíritu sobre toda clase de personas?", "opts": ["Amós", "Joel", "Sofonías"], "ans": "B", "ref": "Joel 2:28, 29; Hechos 2:16-18"}, {"n": 198, "level": "Difícil", "q": "¿Qué profeta anunció que Jehová sacudiría a todas las naciones?", "opts": ["Nahúm", "Oseas", "Ageo"], "ans": "C", "ref": "Ageo 2:7"}, {"n": 199, "level": "Difícil", "q": "Según Proverbios 30:8, ¿qué dos situaciones pidió Agur que Dios no le diera?", "opts": ["Enfermedad y vejez", "Pobreza y riqueza", "Viajes y responsabilidades"], "ans": "B", "ref": "Proverbios 30:7-9"}, {"n": 200, "level": "Difícil", "q": "¿Cuál es el último libro de las Escrituras Griegas Cristianas?", "opts": ["Judas", "Apocalipsis", "3 Juan"], "ans": "B", "ref": "Apocalipsis 1:1"}],BLESS=["Avanza 2 casillas.", "Avanza 3 casillas.", "Vuelve a tirar el dado.", "Elige a otro jugador para avanzar 1 casilla.", "Avanza hasta la próxima casilla par.", "Avanza 1 casilla.", "Puedes repetir una pregunta fallada en tu próximo turno.", "Avanza 2 casillas.", "Conserva esta carta: anula un Obstáculo.", "Todos los jugadores avanzan 1 casilla.", "Avanza 1 casilla.", "Vuelve a tirar el dado."],OBST=["Retrocede 2 casillas.", "Pierdes tu próximo turno.", "Retrocede 1 casilla.", "En tu próximo turno debes responder una difícil.", "Retrocede 3 casillas.", "Pierdes tu próximo turno.", "Retrocede 2 casillas.", "En tu próximo turno debes responder una difícil.", "Retrocede 1 casilla.", "Retrocede 2 casillas.", "Pierdes tu próximo turno.", "Retrocede 1 casilla."];
+let state=null,activeQuestion=null,die=0,phase='ready',historyVisible=true;const $=id=>document.getElementById(id);
+function addHistory(message){if(!state)return;if(!Array.isArray(state.history))state.history=[];state.history.push(String(message).slice(0,240));if(state.history.length>100)state.history.splice(0,state.history.length-100)}
+function drawHistory(){const list=$('historyList'),empty=$('historyEmpty');if(!list||!empty)return;list.replaceChildren();const items=state&&Array.isArray(state.history)?state.history:[];for(const item of items.slice(-20).reverse()){const li=document.createElement('li');li.textContent=item;list.appendChild(li)}empty.style.display=items.length?'none':'block'}
+function toggleHistory(){historyVisible=!historyVisible;$('historyBody').hidden=!historyVisible;$('historyToggle').textContent=historyVisible?'Ocultar historial':'Mostrar historial';$('historyToggle').setAttribute('aria-expanded',String(historyVisible))}
+function localSave(){try{localStorage.setItem('elcamino-v2',JSON.stringify({state,phase,die,activeQuestion}));}catch(e){}}
+function load(){try{const x=JSON.parse(localStorage.getItem('elcamino-v2'));if(x&&x.state){state=x.state;phase=x.phase;die=x.die;activeQuestion=x.activeQuestion;draw();}}catch(e){}}
+function localStart(){if(state&&!state.finished&&!confirm('Hay una partida en curso. ¿Quieres sustituirla por una nueva? Antes puedes guardar una copia.'))return;let n=+$('count').value;let names=Array.from(document.querySelectorAll('#nameFields input')).map(x=>x.value.trim());state={players:Array.from({length:n},(_,i)=>({name:(names[i]||'Jugador '+(i+1)).slice(0,24),pos:0,skip:0,shield:0,hard:false,correct:0,final:false,failCount:0,jailTurns:0})),turn:0,used:[],difficulty:$('difficulty').value,finished:false,history:[]};addHistory('Comienza una partida con '+state.players.map(p=>p.name).join(', ')+'.');phase='ready';die=0;activeQuestion=null;draw();save()}
+function exportGame(){
+ if(!state){alert('Primero inicia una partida para poder guardar una copia.');return}
+ try{
+  const payload={format:'EL_CAMINO_BACKUP',version:1,savedAt:new Date().toISOString(),game:{state,phase,die,activeQuestion}};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='EL_CAMINO_partida_'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);
+ }catch(e){alert('No se pudo generar la copia: '+e.message)}
+}
+function validBackup(data){
+ if(!data||data.format!=='EL_CAMINO_BACKUP'||data.version!==1||!data.game)return false;
+ const g=data.game,s=g.state;
+ if(!s||!Array.isArray(s.players)||s.players.length<2||s.players.length>6||!Number.isInteger(s.turn)||s.turn<0||s.turn>=s.players.length||!Array.isArray(s.used)||s.used.length>200||!['Todas','Fácil','Difícil'].includes(s.difficulty)||typeof s.finished!=='boolean')return false;
+ if(!['ready','question','done'].includes(g.phase)||!Number.isInteger(g.die)||g.die<0||g.die>6)return false;
+ if(!s.players.every(p=>p&&(p.failCount===undefined||(Number.isInteger(p.failCount)&&p.failCount>=0&&p.failCount<=1))&&(p.jailTurns===undefined||(Number.isInteger(p.jailTurns)&&p.jailTurns>=0&&p.jailTurns<=1))&&typeof p.name==='string'&&p.name.length<=24&&Number.isInteger(p.pos)&&p.pos>=0&&p.pos<=1000&&Number.isInteger(p.skip)&&p.skip>=0&&p.skip<=100&&Number.isInteger(p.shield)&&p.shield>=0&&p.shield<=100&&typeof p.hard==='boolean'&&Number.isInteger(p.correct)&&p.correct>=0&&typeof p.final==='boolean'))return false;
+ if(!s.used.every(n=>Number.isInteger(n)&&n>=1&&n<=200))return false;
+ if(g.phase==='question'&&(!g.activeQuestion||!QUESTIONS.some(q=>q.n===g.activeQuestion.n)))return false;
+ return true;
+}
+async function localImportGame(input){
+ const file=input.files&&input.files[0];input.value='';if(!file)return;
+ if(file.size>250000){alert('El archivo es demasiado grande para una copia de EL CAMINO.');return}
+ try{
+  const data=JSON.parse(await file.text());
+  if(!validBackup(data)){alert('Este archivo no es una copia válida de EL CAMINO.');return}
+  if(state&&!confirm('Restaurar la copia sustituirá la partida actual. ¿Continuar?'))return;
+  const g=data.game;
+  state=g.state;if(!Array.isArray(state.history))state.history=[];phase=g.phase;die=g.die;
+  activeQuestion=g.activeQuestion?QUESTIONS.find(q=>q.n===g.activeQuestion.n)||null:null;
+  $('count').value=String(state.players.length);$('difficulty').value=state.difficulty;setupNames();
+  [...$('nameFields').querySelectorAll('input')].forEach((el,i)=>el.value=state.players[i].name);
+  draw();$('notice').textContent='Partida restaurada desde la copia del '+(data.savedAt?data.savedAt.slice(0,10):'archivo')+'.';save();
+  alert('Partida restaurada correctamente.');
+ }catch(e){alert('No se pudo leer la copia. Comprueba que sea un archivo JSON válido.')}
+}
+function setupNames(){const area=$('nameFields');const previous=Array.from(area.querySelectorAll('input')).map(x=>x.value);area.innerHTML='';for(let i=0;i<Number($('count').value);i++){const label=document.createElement('label');label.textContent='Jugador '+(i+1);const inp=document.createElement('input');inp.type='text';inp.maxLength=24;inp.placeholder='Nombre opcional';inp.value=previous[i]||'';inp.autocomplete='off';label.append(inp);area.append(label)}}
+$('count').addEventListener('change',setupNames);setupNames();
+function localResetConfirm(){if(confirm('¿Borrar la partida guardada?')){localStorage.removeItem('elcamino-v2');state=null;phase='ready';draw()}}
+function player(){return state.players[state.turn]}
+function drawBoard(){let b=$('board');b.innerHTML='';const cells=new Map();for(let i=0;i<40;i++){let x,y;if(i<11){x=i;y=0}else if(i<21){x=10;y=i-10}else if(i<31){x=30-i;y=10}else{x=0;y=40-i}cells.set(`${x},${y}`,i)}for(let y=10;y>=0;y--)for(let x=0;x<11;x++){if(x>0&&x<10&&y>0&&y<10){if(x===1&&y===9){let center=document.createElement('div');center.className='center';center.style.gridColumn='2 / 11';center.style.gridRow='2 / 11';center.innerHTML='<h2>EL CAMINO</h2><p>BENDICIONES ✦ OBSTÁCULOS</p><p>Responde · Avanza · Aprende</p>';let boardRoll=document.createElement('button');boardRoll.type='button';boardRoll.id='boardRoll';boardRoll.className='board-roll-btn';boardRoll.innerHTML='<span class="dice-emoji" aria-hidden="true">🎲</span> Tirar dado';boardRoll.disabled=!state||phase!=='ready'||state.finished;boardRoll.addEventListener('click',roll);let turnLabel=document.createElement('div');turnLabel.className='board-turn-label';turnLabel.textContent=!state?'Prepara una partida para comenzar':state.finished?'Partida terminada':phase==='ready'?'Turno de '+player().name:phase==='question'?'Responde a la pregunta': 'Pulsa Siguiente turno';center.append(boardRoll,turnLabel);let jail=document.createElement('div');jail.className='jail-box';jail.setAttribute('aria-label','Cárcel: dos respuestas incorrectas, se pierde un turno');let prisoners=state?state.players.filter(p=>p.jailTurns>0):[];if(prisoners.length)jail.classList.add('occupied');let bars=document.createElement('span');bars.className='jail-bars';bars.textContent='🔒';let title=document.createElement('strong');title.textContent='CÁRCEL';let names=document.createElement('span');names.className='jail-occupants';names.textContent=prisoners.length?prisoners.map(p=>p.name).join(', '):'Vacía';let rule=document.createElement('small');rule.textContent='2 fallos = 1 turno sin jugar';jail.append(bars,title,names,rule);center.append(jail);b.append(center)}continue}let i=cells.get(`${x},${y}`);let el=document.createElement('div');el.className='tile';el.dataset.cell=String(i);el.style.gridColumn=String(x+1);el.style.gridRow=String(11-y);let icons=state?state.players.map((p,j)=>p.pos%40===i&&!p.jailTurns?['🔵','🟠','🟣','🟢','🔴','🟡'][j]:'').join(''):'';el.innerHTML='<strong>'+(i+1)+'</strong><span>'+BOOKS[i]+'</span><span class="token">'+icons+'</span>';b.append(el)}}
+function drawPlayerDashboard(){
+ const area=$('playerDashboard');if(!area)return;
+ area.replaceChildren();if(!state||!Array.isArray(state.players))return;
+ const colors=['🔵','🟠','🟣','🟢','🔴','🟡'];
+ state.players.forEach((p,i)=>{
+  const card=document.createElement('div');card.className='player-card'+(i===state.turn?' current':'');
+  const title=document.createElement('div');title.className='player-title';title.textContent=colors[i]+' '+p.name+(i===state.turn?' · Turno actual':'');
+  const meta=document.createElement('div');meta.className='player-meta';meta.textContent='Casilla '+(p.pos%40+1)+' de 40 · '+p.correct+' aciertos';
+  const track=document.createElement('div');track.className='progress-track';track.setAttribute('role','progressbar');track.setAttribute('aria-valuemin','0');track.setAttribute('aria-valuemax','40');
+  const progress=p.final?40:Math.min(40,p.pos);track.setAttribute('aria-valuenow',String(progress));track.setAttribute('aria-label','Progreso de '+p.name);
+  const fill=document.createElement('div');fill.className='progress-fill';fill.style.width=(progress/40*100)+'%';track.append(fill);
+  const badges=document.createElement('div');badges.className='player-badges';
+  const status=[];if(p.final)status.push('🏁 Pregunta final');if(p.jailTurns)status.push('🔒 En la cárcel · pierde un turno');else if(p.skip)status.push('⏳ Pierde '+p.skip+' turno(s)');if(p.failCount)status.push('⚠️ 1 de 2 fallos');if(p.shield)status.push('🛡️ Protección: '+p.shield);if(p.hard)status.push('📘 Próxima pregunta difícil');
+  badges.textContent=status.join(' · ')||'En camino';
+  card.append(title,meta,track,badges);area.append(card);
+ });
+}
+function draw(){drawBoard();drawHistory();drawPlayerDashboard();if(!state){$('turn').textContent='Inicia una partida';$('players').textContent='';$('notice').textContent='Pulsa Nueva partida.';$('roll').disabled=true;$('quiz').classList.add('hide');$('continue').classList.add('hide');return}let p=player();$('turn').textContent=state.finished?'Partida terminada':'Turno de '+p.name;$('players').textContent=state.players.map((a,i)=>(i===state.turn?'▶ ':'')+a.name+': '+(a.pos%40+1)+' ('+a.correct+' aciertos)').join('  ·  ');$('roll').disabled=phase!=='ready'||state.finished;$('continue').classList.toggle('hide',phase!=='done');$('quiz').classList.toggle('hide',phase!=='question');$('die').textContent=die?'Dado: '+die:'';if(phase==='question'&&activeQuestion)renderQuestion()}
+function choose(){let p=player();let level=p.hard?'Difícil':state.difficulty;let pool=QUESTIONS.filter(q=>(level==='Todas'||q.level.toLowerCase().includes(level.toLowerCase()))&&!state.used.includes(q.n));if(!pool.length){state.used=[];pool=QUESTIONS.filter(q=>level==='Todas'||q.level.toLowerCase().includes(level.toLowerCase()))}let q=pool[Math.floor(Math.random()*pool.length)];state.used.push(q.n);return q}
+/* Sonido sintetizado localmente con Web Audio; no requiere archivos externos. */
+let diceAudioContext=null;
+let diceSoundEnabled=true;
+let diceAnimationTimer=null;
+function loadDiceSound(){
+ try{diceSoundEnabled=localStorage.getItem('elcamino-dice-sound-v11')!=='off'}catch(e){}
+ updateDiceSoundButton();
+}
+function updateDiceSoundButton(){
+ const b=$('soundToggle');if(!b)return;
+ b.textContent=diceSoundEnabled?'🔊 Sonidos del juego: activados':'🔇 Sonidos del juego: silenciados';
+ b.setAttribute('aria-pressed',String(diceSoundEnabled));
+}
+function toggleDiceSound(){
+ diceSoundEnabled=!diceSoundEnabled;
+ try{localStorage.setItem('elcamino-dice-sound-v11',diceSoundEnabled?'on':'off')}catch(e){}
+ updateDiceSoundButton();
+}
+function playDiceSound(){
+ if(!diceSoundEnabled)return;
+ try{
+  const AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC)return;
+  if(!diceAudioContext)diceAudioContext=new AC();
+  const ctx=diceAudioContext;
+  if(ctx.state==='suspended')ctx.resume().catch(()=>{});
+  const t=ctx.currentTime+0.018;
+  // Golpes secos de dados sobre una superficie: ruido filtrado y caída de volumen.
+  const strikes=[0,.085,.17,.265,.39,.53,.67];
+  strikes.forEach((offset,i)=>{
+   const duration=.042;
+   const buffer=ctx.createBuffer(1,Math.ceil(ctx.sampleRate*duration),ctx.sampleRate);
+   const data=buffer.getChannelData(0);
+   for(let j=0;j<data.length;j++){
+    const decay=Math.pow(1-j/data.length,2.6);
+    data[j]=(Math.random()*2-1)*decay;
+   }
+   const src=ctx.createBufferSource();src.buffer=buffer;
+   const filter=ctx.createBiquadFilter();filter.type='bandpass';filter.frequency.value=900+i*115;filter.Q.value=.65;
+   const gain=ctx.createGain();const when=t+offset;
+   const level=Math.max(.018,.13-i*.016);
+   gain.gain.setValueAtTime(level,when);
+   gain.gain.exponentialRampToValueAtTime(.001,when+duration);
+   src.connect(filter);filter.connect(gain);gain.connect(ctx.destination);
+   src.start(when);src.stop(when+duration);
+  });
+ }catch(e){/* Si el navegador no permite audio, el dado sigue funcionando. */}
+}
+/* v13: sonido de fallo más audible y prueba manual. v12: señales acústicas breves para respuestas y casillas especiales.
+   Comparte el interruptor y el contexto de audio del dado. */
+function playGameCue(kind){
+ if(!diceSoundEnabled)return;
+ try{
+  const AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC)return;
+  if(!diceAudioContext)diceAudioContext=new AC();
+  const ctx=diceAudioContext;
+  if(ctx.state==='suspended'){ctx.resume().then(()=>playGameCue(kind)).catch(()=>{});return;}
+  const base=ctx.currentTime+.025;
+  const patterns={
+   correct:[[0,523.25,.11,.085],[.12,659.25,.14,.085]],
+   wrong:[[0,392,.20,.19],[.23,293.66,.26,.20]],
+   blessing:[[0,523.25,.10,.085],[.11,659.25,.10,.085],[.22,783.99,.19,.095]],
+   obstacle:[[0,392,.11,.055],[.13,329.63,.13,.05],[.28,293.66,.17,.04]],
+   win:[[0,523.25,.11,.09],[.12,659.25,.11,.09],[.24,783.99,.12,.09],[.37,1046.5,.3,.095]]
+  };
+  (patterns[kind]||[]).forEach(([offset,freq,duration,volume])=>{
+   const osc=ctx.createOscillator(),gain=ctx.createGain(),when=base+offset;
+   osc.type='sine';osc.frequency.setValueAtTime(freq,when);
+   gain.gain.setValueAtTime(.0001,when);
+   gain.gain.linearRampToValueAtTime(volume,when+.012);
+   gain.gain.exponentialRampToValueAtTime(.0001,when+duration);
+   osc.connect(gain);gain.connect(ctx.destination);
+   osc.start(when);osc.stop(when+duration+.015);
+  });
+ }catch(e){/* El juego continúa aunque el dispositivo no reproduzca sonido. */}
+}
+
+/* v14: vibración opcional, independiente del audio y del motor del juego. */
+let vibrationEnabled=false;
+try{vibrationEnabled=localStorage.getItem('elcamino-vibration-v14')==='on'}catch(e){}
+function updateVibrationButton(){
+ const b=$('vibrationToggle');if(!b)return;
+ const supported=typeof navigator.vibrate==='function';
+ b.disabled=!supported;
+ b.textContent=!supported?'📳 Vibración no disponible':(vibrationEnabled?'📳 Vibración: activada':'📳 Vibración: desactivada');
+ b.setAttribute('aria-pressed',String(supported&&vibrationEnabled));
+ b.title=supported?'Activar o desactivar la vibración del móvil':'Este navegador no permite vibrar';
+}
+function toggleVibration(){
+ if(typeof navigator.vibrate!=='function')return;
+ vibrationEnabled=!vibrationEnabled;
+ try{localStorage.setItem('elcamino-vibration-v14',vibrationEnabled?'on':'off')}catch(e){}
+ updateVibrationButton();
+ if(vibrationEnabled)vibrateGame([35,45,35]);
+}
+function vibrateGame(pattern){
+ if(!vibrationEnabled||typeof navigator.vibrate!=='function')return;
+ try{navigator.vibrate(pattern)}catch(e){}
+}
+
+function animateDiceResult(value){
+ const el=$('die');if(!el)return;
+ if(diceAnimationTimer)clearInterval(diceAnimationTimer);
+ el.classList.add('dice-rolling');
+ let frames=0;
+ diceAnimationTimer=setInterval(()=>{
+  frames++;
+  if(frames>=9){clearInterval(diceAnimationTimer);diceAnimationTimer=null;el.classList.remove('dice-rolling');el.textContent='Dado: '+value;return}
+  el.textContent='🎲 '+(1+Math.floor(Math.random()*6));
+ },75);
+}
+
+let overlayTimer=null;
+const diceFaces=['⚀','⚁','⚂','⚃','⚄','⚅'];
+function closeGameOverlay(){
+ if(overlayTimer){clearInterval(overlayTimer);overlayTimer=null}
+ const quiz=$('quiz'),home=$('quizHome');
+ if(quiz&&home&&quiz.parentNode!==home)home.appendChild(quiz);
+ $('gameOverlay').classList.add('hide');
+ $('overlayDiceStage').classList.add('hide');$('overlayQuestionStage').classList.add('hide');$('overlayResultStage').classList.add('hide');
+ $('overlayDie').classList.remove('rolling');
+}
+function showBoardRoll(value,person){
+ closeGameOverlay();
+ const overlay=$('gameOverlay'),dieEl=$('overlayDie');
+ $('overlayPlayer').textContent='Turno de '+person;
+ $('overlayDiceText').textContent='Lanzando dado…';
+ $('overlayDiceStage').classList.remove('hide');overlay.classList.remove('hide');
+ dieEl.classList.add('rolling');
+ let ticks=0;
+ const spin=setInterval(()=>{dieEl.textContent=diceFaces[Math.floor(Math.random()*6)];ticks++;
+ if(ticks>=12){clearInterval(spin);dieEl.classList.remove('rolling');dieEl.textContent=diceFaces[value-1];$('overlayDiceText').textContent='Has sacado '+value;
+ overlayTimer=setTimeout(()=>{overlayTimer=null;showBoardQuestion(person)},450);
+ }},75);
+}
+function showBoardQuestion(person){
+ if(phase!=='question'||!activeQuestion){closeGameOverlay();return}
+ $('overlayDiceStage').classList.add('hide');
+ $('overlayQuestionStage').classList.remove('hide');
+ $('overlayQuestionPlayer').textContent=person+' · Responde para avanzar';
+ $('overlayQuizSlot').appendChild($('quiz'));
+ $('quiz').classList.remove('hide');
+ $('gameOverlay').classList.remove('hide');
+ const first=$('answers').querySelector('button');if(first)first.focus();
+}
+function showBoardResult(ok){
+ $('overlayDiceStage').classList.add('hide');$('overlayQuestionStage').classList.add('hide');
+ $('overlayResultIcon').textContent=state.finished?'🏆':(ok?'✅':'📖');
+ $('overlayResultMessage').textContent=$('notice').textContent;
+ $('overlayResultAnswer').textContent='Respuesta correcta: '+activeQuestion.ans+'. '+activeQuestion.opts['ABC'.indexOf(activeQuestion.ans)]+' · '+activeQuestion.ref;
+ $('overlayNextTurn').textContent=state.finished?'Cerrar resultado':'Siguiente turno';
+ $('overlayResultStage').classList.remove('hide');$('gameOverlay').classList.remove('hide');
+ $('overlayNextTurn').focus();
+}
+function markTarget(){
+ document.querySelectorAll('#board .tile-target').forEach(e=>e.classList.remove('tile-target'));
+ if(!state||phase!=='question'||player().final)return;
+ const i=(player().pos+die)%40;
+ const el=document.querySelector('#board .tile[data-cell="'+i+'"]');
+ if(el)el.classList.add('tile-target');
+}
+function localRoll(){if(!state||phase!=='ready')return;let p=player();if(p.jailTurns>0){p.jailTurns--;addHistory(p.name+' cumple su turno en la cárcel y queda libre.');$('notice').textContent=p.name+' pierde este turno en la cárcel. ¡En el siguiente podrá volver a jugar!';phase='done';draw();$('overlayResultIcon').textContent='🔓';$('overlayResultMessage').textContent=$('notice').textContent;$('overlayResultAnswer').textContent='';$('overlayNextTurn').textContent='Siguiente turno';$('overlayResultStage').classList.remove('hide');$('gameOverlay').classList.remove('hide');save();return}if(p.skip>0){p.skip--; addHistory(p.name+' pierde el turno por un obstáculo.'); $('notice').textContent=p.name+' pierde este turno.';phase='done';draw();$('overlayResultIcon').textContent='⏳';$('overlayResultMessage').textContent=$('notice').textContent;$('overlayResultAnswer').textContent='';$('overlayNextTurn').textContent='Siguiente turno';$('overlayResultStage').classList.remove('hide');$('gameOverlay').classList.remove('hide');save();return}die=1+Math.floor(Math.random()*6);playDiceSound();vibrateGame([25,35,35,35,50]);activeQuestion=choose();addHistory(p.name+' tira el dado: '+die+'. Pregunta '+activeQuestion.n+'.');phase='question';$('notice').textContent=p.final?'Pregunta final para ganar.':p.name+' debe responder para avanzar '+die+' casillas.';draw();markTarget();showBoardRoll(die,p.name);save()}
+function renderQuestion(){$('qn').textContent='Pregunta '+activeQuestion.n+' · '+activeQuestion.level;$('question').textContent=activeQuestion.q;$('answers').innerHTML='';activeQuestion.opts.forEach((v,i)=>{let bt=document.createElement('button');bt.className='option';bt.textContent='ABC'[i]+'. '+v;bt.onclick=()=>answer('ABC'[i]);$('answers').append(bt)});$('reference').textContent='La referencia se mostrará al responder.'}
+function localAnswer(letter){if(phase!=='question')return;closeGameOverlay();let p=player(),ok=letter===activeQuestion.ans;let cue=ok?'correct':'wrong';vibrateGame(ok?[55,55,55]:[150]); p.hard=false;if(ok){p.correct++;if(p.final){state.finished=true;cue='win';$('notice').textContent='¡'+p.name+' gana EL CAMINO!';}else{let before=p.pos;p.pos+=die;if(p.pos>=40){p.final=true;$('notice').textContent='¡'+p.name+' completó la vuelta! En su siguiente turno responderá la pregunta final.'}else{let spot=p.pos+1;if(spot%5===0){let good=spot%10===5;cue=good?'blessing':'obstacle';let deck=good?BLESS:OBST;let index=Math.floor(Math.random()*deck.length);let event=deck[index];applyEvent(p,event,good);$('notice').textContent='Correcto. '+(good?'BENDICIÓN: ':'OBSTÁCULO: ')+event}else $('notice').textContent='Correcto. Avanzas '+die+' casillas.'}}}else{p.failCount=(p.failCount||0)+1;if(p.failCount>=2){p.failCount=0;p.jailTurns=1;$('notice').textContent='Respuesta incorrecta. ¡Segundo fallo! '+p.name+' va a la CÁRCEL y perderá su próximo turno. Conserva su casilla.';}else{$('notice').textContent='Respuesta incorrecta. Permaneces en tu casilla. Primer fallo de 2 para ir a la cárcel.';}}playGameCue(cue);addHistory(p.name+(ok?' acierta':' falla')+' la pregunta '+activeQuestion.n+'. '+$('notice').textContent);phase='done';draw();showBoardResult(ok);$('quiz').classList.remove('hide');$('reference').textContent='Respuesta: '+activeQuestion.ans+'. '+activeQuestion.opts['ABC'.indexOf(activeQuestion.ans)]+' · '+activeQuestion.ref;$('answers').querySelectorAll('button').forEach((b,i)=>{b.disabled=true;if('ABC'[i]===activeQuestion.ans)b.classList.add('correct');else if('ABC'[i]===letter)b.classList.add('wrong')});save()}
+function applyEvent(p,event,good){if(event.includes('anula')){p.shield++;return}if(!good&&p.shield){p.shield--;return}if(event.includes('Pierdes'))p.skip++;if(event.includes('difícil'))p.hard=true;let m=event.match(/(Avanza|Retrocede) (\d+) casillas?/i);if(m)p.pos=Math.max(0,p.pos+(m[1]==='Avanza'?1:-1)*Number(m[2]));else if(event.includes('Avanza 1 casilla'))p.pos++;else if(event.includes('Todos los jugadores'))state.players.forEach(a=>a.pos++);else if(event.includes('próxima casilla par'))p.pos+=p.pos%2===0?1:2;else if(event.includes('Elige a otro'))state.players[(state.turn+1)%state.players.length].pos++;else if(event.includes('Vuelve a tirar'))p.pos+=1;else if(event.includes('repetir una pregunta'))p.shield++}
+function localNextTurn(){closeGameOverlay();if(state.finished)return;state.turn=(state.turn+1)%state.players.length;phase='ready';activeQuestion=null;die=0;$('notice').textContent='Turno preparado. Tira el dado.';draw();save()}
+
+function toggleReading(kind){
+ const cls=kind==='large'?'large-reading':'high-contrast';
+ document.body.classList.toggle(cls);
+ updateReadingButtons();
+ try{localStorage.setItem('elcamino-reading-v6',JSON.stringify({large:document.body.classList.contains('large-reading'),contrast:document.body.classList.contains('high-contrast')}))}catch(e){}
+}
+function updateReadingButtons(){
+ const large=document.body.classList.contains('large-reading');
+ const contrast=document.body.classList.contains('high-contrast');
+ $('largeReading').setAttribute('aria-pressed',String(large));
+ $('largeReading').textContent=large?'Letra normal':'Aumentar letra';
+ $('contrastReading').setAttribute('aria-pressed',String(contrast));
+ $('contrastReading').textContent=contrast?'Contraste normal':'Alto contraste';
+}
+function loadReading(){
+ try{const p=JSON.parse(localStorage.getItem('elcamino-reading-v6')||'{}');document.body.classList.toggle('large-reading',p.large===true);document.body.classList.toggle('high-contrast',p.contrast===true)}catch(e){}
+ updateReadingButtons();
+}
+
+function updateBoardVisibility(){
+ const hidden=document.body.classList.contains('board-compact');
+ $('boardWrap').hidden=hidden;
+ $('boardHiddenNotice').classList.toggle('hide',!hidden);
+ $('boardToggle').textContent=hidden?'Mostrar tablero':'Ocultar tablero';
+ $('boardToggle').setAttribute('aria-expanded',String(!hidden));
+}
+function toggleBoard(){
+ document.body.classList.toggle('board-compact');
+ updateBoardVisibility();
+ try{localStorage.setItem('elcamino-board-v8',document.body.classList.contains('board-compact')?'hidden':'shown')}catch(e){}
+}
+function loadBoardVisibility(){
+ try{document.body.classList.toggle('board-compact',localStorage.getItem('elcamino-board-v8')==='hidden')}catch(e){}
+ updateBoardVisibility();
+}
+function updateFocus(){
+ const active=document.body.classList.contains('focus-play');
+ $('focusToggle').textContent=active?'Mostrar configuración':'Activar modo partida';
+ $('focusToggle').setAttribute('aria-pressed',String(active));
+}
+function toggleFocus(){
+ document.body.classList.toggle('focus-play');updateFocus();
+ try{localStorage.setItem('elcamino-focus-v9',document.body.classList.contains('focus-play')?'on':'off')}catch(e){}
+}
+function loadFocus(){
+ try{document.body.classList.toggle('focus-play',localStorage.getItem('elcamino-focus-v9')==='on')}catch(e){}
+ updateFocus();
+}
+
+// v20: Online state is stored in Firebase Realtime Database.
+let online=null, onlineBusy=false, onlineReady=false, onlineSDK=null, onlineUnsub=null, onlineRev=-1;
+let onlinePreviousPhase='', onlinePreviousTurn=-1;
+const onlineConfig={apiKey:'AIzaSyBZy1AHjPJpAsrVBDqXpAaJGSqLMmA-xmQ',authDomain:'el-camino-online.firebaseapp.com',databaseURL:'https://el-camino-online-default-rtdb.europe-west1.firebasedatabase.app',projectId:'el-camino-online',storageBucket:'el-camino-online.firebasestorage.app',messagingSenderId:'913121396504',appId:'1:913121396504:web:9f0b45548455e1289b006d'};
+const onlineMessage=(msg,error=false)=>{const el=$('onlineStatus');el.textContent=msg;el.classList.toggle('error',error)};
+function onlineGuard(){return !!online && !!online.room && !!online.game && online.game.state && online.game.playerIds && online.game.playerIds[online.game.state.turn]===online.uid && !onlineBusy && !online.game.state.finished}
+function onlineUI(){
+ $('onlineEntry').classList.toggle('hide',!!online);$('onlineRoom').classList.toggle('hide',!online);
+ if(!online){$('setupPanel').classList.remove('online-lock');onlineMessage('Modo familiar disponible sin conexión.');return}
+ $('setupPanel').classList.add('online-lock');$('onlineRoomCode').textContent=online.code;
+ const members=Object.entries(online.room.members||{}).map(([id,m])=>m.name||'Jugador');
+ $('onlineMembers').textContent='Conectados: '+members.join(', ')+' ('+members.length+'/'+online.room.meta.max+')';
+ $('onlineBegin').classList.toggle('hide',online.room.meta.host!==online.uid||!!online.room.game);
+ $('onlineBegin').disabled=members.length<2;
+ $('onlineTurnInfo').textContent=online.room.game?(onlineGuard()?'🎲 ¡Es tu turno!':'⏳ Esperando el turno de '+(state?.players[state.turn]?.name||'otro jugador')):'Esperando al menos 2 jugadores. El creador iniciará la partida.';
+ if(state){const allowed=onlineGuard();$('roll').disabled=!allowed||phase!=='ready';const b=$('boardRoll');if(b)b.disabled=!allowed||phase!=='ready';$('continue').disabled=!allowed||phase!=='done';$('overlayNextTurn').disabled=!allowed||phase!=='done';$('answers').querySelectorAll('button').forEach(b=>b.disabled=!allowed||phase!=='question');}
+}
+async function onlineInit(){
+ if(onlineReady)return;
+ if(location.protocol!=='https:'&&location.hostname!=='localhost')throw Error('Publica primero el HTML en una web HTTPS. No funciona online desde Descargas.');
+ const [{initializeApp},{getAuth,signInAnonymously},{getDatabase,ref,onValue,runTransaction,get,set,remove}] = await Promise.all([
+ import('https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js')]);
+ const app=initializeApp(onlineConfig);const auth=getAuth(app);const credential=await signInAnonymously(auth);const db=getDatabase(app);
+ onlineSDK={db,ref,onValue,runTransaction,get,set,remove,uid:credential.user.uid};onlineReady=true;
+}
+function onlineListen(code){
+ if(onlineUnsub)onlineUnsub();
+ const {ref,onValue,db}=onlineSDK;onlineUnsub=onValue(ref(db,'rooms/'+code),snap=>{
+  if(!online||online.code!==code)return;
+  const room=snap.val();if(!room){onlineMessage('La sala ya no existe.',true);return}
+  online.room=room;const g=room.game;online.game=g||null;
+  if(g&&typeof g.rev==='number'&&g.rev!==onlineRev){
+   onlineRev=g.rev;const prevPhase=phase,prevTurn=state?.turn;
+   state=g.state;phase=g.phase;die=g.die;activeQuestion=g.questionId?QUESTIONS.find(q=>q.n===g.questionId)||null:null;
+   draw();
+   if(phase==='question'&&activeQuestion){showBoardQuestion(player().name);markTarget()}
+   else if(phase==='done'){
+     if(activeQuestion){$('notice').textContent=g.notice||'Turno completado';showBoardResult(!!g.correct)}
+     else{closeGameOverlay();$('overlayResultIcon').textContent='⏳';$('overlayResultMessage').textContent=g.notice||'Turno perdido';$('overlayResultAnswer').textContent='';$('overlayNextTurn').textContent='Siguiente turno';$('overlayResultStage').classList.remove('hide');$('gameOverlay').classList.remove('hide')}
+   }else closeGameOverlay();
+  }
+  onlineBusy=false;onlineUI();
+  onlineMessage(g?'Sala conectada. Los turnos se sincronizan en tiempo real.':'Sala creada. Comparte el código y espera a los demás.');
+ },err=>onlineMessage('Error de conexión o permisos: '+err.message,true));
+}
+async function onlineCreate(){try{onlineMessage('Conectando con Firebase…');await onlineInit();const name=$('onlineName').value.trim().slice(0,24);if(!name)throw Error('Escribe tu nombre.');const code=Array.from(crypto.getRandomValues(new Uint8Array(10)),n=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[n%32]).join('');const uid=onlineSDK.uid;const room={meta:{host:uid,max:Number($('onlineMax').value),created:Date.now()},members:{[uid]:{name,joined:Date.now()}}};await onlineSDK.set(onlineSDK.ref(onlineSDK.db,'rooms/'+code),room);online={code,uid,room,game:null};onlineRev=-1;state=null;phase='ready';die=0;activeQuestion=null;closeGameOverlay();draw();onlineListen(code);onlineUI();}catch(e){onlineMessage(e.message,true)}}
+async function onlineJoin(){try{onlineMessage('Buscando sala…');await onlineInit();const name=$('onlineName').value.trim().slice(0,24),code=$('onlineCode').value.trim().toUpperCase();if(!name)throw Error('Escribe tu nombre.');if(!/^[A-Z2-9]{10}$/.test(code))throw Error('Introduce un código de sala válido de 10 caracteres.');const roomRef=onlineSDK.ref(onlineSDK.db,'rooms/'+code);const snap=await onlineSDK.get(roomRef);if(!snap.exists())throw Error('No existe esa sala.');const room=snap.val();if(room.game)throw Error('La partida ya ha comenzado.');if(!room.members?.[onlineSDK.uid]&&Object.keys(room.members||{}).length>=room.meta.max)throw Error('La sala está completa.');await onlineSDK.set(onlineSDK.ref(onlineSDK.db,'rooms/'+code+'/members/'+onlineSDK.uid),{name,joined:Date.now()});online={code,uid:onlineSDK.uid,room,game:null};onlineRev=-1;state=null;phase='ready';die=0;activeQuestion=null;closeGameOverlay();draw();onlineListen(code);onlineUI();}catch(e){onlineMessage(e.message,true)}}
+async function onlineBegin(){try{if(!online||online.room.meta.host!==online.uid)return;const entries=Object.entries(online.room.members||{}).sort((a,b)=>a[1].joined-b[1].joined);if(entries.length<2||entries.length>6)throw Error('Se necesitan entre 2 y 6 jugadores.');const st={players:entries.map(([,m])=>({name:m.name,pos:0,skip:0,shield:0,hard:false,correct:0,final:false,failCount:0,jailTurns:0})),turn:0,used:[],difficulty:'Todas',finished:false,history:['Comienza una partida online con '+entries.map(([,m])=>m.name).join(', ')+'.']};const game={state:st,phase:'ready',die:0,questionId:null,playerIds:entries.map(([id])=>id),rev:0,notice:'Comienza la partida.'};const ref=onlineSDK.ref(onlineSDK.db,'rooms/'+online.code+'/game');const r=await onlineSDK.runTransaction(ref,current=>current===null?game:undefined,{applyLocally:false});if(!r.committed)throw Error('La partida ya ha comenzado.');}catch(e){onlineMessage(e.message,true)}}
+function onlineSnapshot(){return {state:structuredClone(state),phase,die,questionId:activeQuestion?.n||null,notice:$('notice').textContent}}
+async function onlineAction(fn){
+ if(!onlineGuard())return;onlineBusy=true;const prev=online.game,baseRev=prev.rev;
+ try{fn();const snapshot=onlineSnapshot();const ref=onlineSDK.ref(onlineSDK.db,'rooms/'+online.code+'/game');
+  const result=await onlineSDK.runTransaction(ref,current=>{if(!current||current.rev!==baseRev||current.playerIds[current.state.turn]!==online.uid)return;return {...current,...snapshot,rev:baseRev+1,correct:phase==='done'&&activeQuestion?($('overlayResultIcon').textContent==='✅'||$('overlayResultIcon').textContent==='🏆'):null};},{applyLocally:false});
+  if(!result.committed)throw Error('La partida cambió en otro dispositivo. Se recuperará el estado actualizado.');
+ }catch(e){onlineMessage(e.message,true);onlineBusy=false;if(online?.game){const g=online.game;state=g.state;phase=g.phase;die=g.die;activeQuestion=g.questionId?QUESTIONS.find(q=>q.n===g.questionId):null;draw();onlineUI()}}
+}
+function start(){if(online){onlineMessage('En el modo online, la partida la inicia el creador de la sala.',true);return}localStart()}
+function roll(){if(online){onlineAction(localRoll);return}localRoll()}
+function answer(letter){if(online){onlineAction(()=>localAnswer(letter));return}localAnswer(letter)}
+function nextTurn(){if(online){onlineAction(localNextTurn);return}localNextTurn()}
+function save(){if(!online)localSave()}
+function resetConfirm(){if(online){onlineMessage('Para reiniciar, sal del modo online y crea una sala nueva.',true);return}localResetConfirm()}
+async function importGame(input){if(online){input.value='';onlineMessage('Las copias se restauran desde el modo familiar.',true);return}return localImportGame(input)}
+function onlineExit(){if(!online)return;if(!confirm('¿Salir del modo online? La partida continuará para los demás.'))return;if(onlineUnsub){onlineUnsub();onlineUnsub=null}online=null;onlineRev=-1;state=null;phase='ready';die=0;activeQuestion=null;closeGameOverlay();load();draw();onlineUI()}
+$('onlineCreate').addEventListener('click',onlineCreate);$('onlineJoin').addEventListener('click',onlineJoin);$('onlineBegin').addEventListener('click',onlineBegin);$('onlineExit').addEventListener('click',onlineExit);
+$('onlineShare').addEventListener('click',async()=>{if(!online)return;const text='Únete a EL CAMINO DIGITAL: '+location.origin+location.pathname+'?sala='+online.code+' · Código: '+online.code;try{await navigator.clipboard.writeText(text);onlineMessage('Invitación copiada. Pégala en WhatsApp.')}catch(e){onlineMessage('Comparte este código: '+online.code)}});
+const sala=new URLSearchParams(location.search).get('sala');if(sala&&/^[A-Z2-9]{10}$/.test(sala.toUpperCase())){$('onlineCode').value=sala.toUpperCase();onlineMessage('Invitación detectada. Escribe tu nombre y pulsa Unirme a la partida.')}
+
+draw();load();loadReading();loadBoardVisibility();loadFocus();loadDiceSound();
+updateVibrationButton();
+</script></body></html>
